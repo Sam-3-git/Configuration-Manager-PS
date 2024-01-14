@@ -1,5 +1,4 @@
 ###############################################################################
-# # Author: Sunfish                                                         # #
 # # Date:   11/22/2023                                                      # #
 # # Goal:   To obtain source files for use in air-gapped                    # #
 # #         ConfigMan enviorments                                           # #
@@ -140,7 +139,6 @@ if ($GenerateScript) {
     ###########################
     $ScriptBody = @"
 ###############################################################################
-# # Author: samuel.r.sciabarrasi.civ@us.navy.mil                            # #
 # # Date: 11/22/2023                                                        # #
 # # Goal: To obtain source files for use in air-gapped ConfigMan enviorments# #
 # # Version: 3.0                                                            # #
