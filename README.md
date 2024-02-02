@@ -6,7 +6,7 @@
 
 ## Table of Contents
 
-- [SUG Tool Box](#SUGToolBox)
+- [SUG Tool Box](#sug-tool-box-)
 - [Get Update Source Files](#get-update-source-files-)
 
 # SUG Tool Box <a name = "SUGToolBox"></a>
