@@ -86,7 +86,7 @@ Examples
 ## Get Update Source Files <a name = "#Get_Update_Source_Files"></a>
 [Get-UpdateSourceFile](https://github.com/Sam-3-git/Configuration-Manager-PS-Scripts/blob/main/Scripts/Get-UpdateSourceFile.ps1) - Code
 
-Script used to obtain software update source binaries. This script will pull the meta data microsoft download location present in Config Man per target software update. There is the option to download to a source directory or create a download script which can be run on any internet connected system. Creates the following directory structure in the root of where script is run:
+Script used to obtain software update source binaries. This script will query config man to pull microsoft download locations per target software update. There is the option to download to a source directory or create a download script which can be run on any internet connected system. Creates the following directory structure in the root of where script is run:
 - \GetUpdateSourceFiles (contains log files and any generated scripts)
     - \SourcedFiles (contains sourced update binaries. point to this folder when downloading an update from within the config man console.)
 
