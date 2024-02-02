@@ -7,7 +7,7 @@
 ## Table of Contents
 
 - [SUG Tool Box](#SUGToolBox)
-- [Get Update Source Files](#GetUpdateSourceFiles)
+- [Get Update Source Files](#get-update-source-files-)
 
 # SUG Tool Box <a name = "SUGToolBox"></a>
 [Sug-Toolbox.ps1](https://github.com/Sam-3-git/Configuration-Manager-PS-Scripts/blob/main/Scripts/SUG-Toolbox.ps1) - Code
