@@ -107,16 +107,21 @@ $file = "$PSScriptRoot\GetUpdateSourceFiles\GetUpdateSourceFiles_{0:MMddyyyy_HHm
 Start-Transcript -Path $file -IncludeInvocationHeader
 ##########################
 
-# User Output
-#############
-Write-Host ""
-Write-Host "Creating File Structure and Logging" -ForegroundColor Yellow
-Write-Host "Connected to $ProviderMachineName at $SiteCode" -ForegroundColor Green
-Write-Host ""
-#############
+# User Output Notification
+##########################
+Cls
+Write-Host
+Write-Host "SITE:   $SiteCode" -ForegroundColor DarkGray
+Write-Host "SERVER: $ProviderMachineName" -ForegroundColor DarkGray
+Write-Host "USER:   $env:USERNAME" -ForegroundColor DarkGray
+Write-Host "LOG:    $file" -ForegroundColor DarkGray
+Write-Host
+##########################
 
-# Vars
-######
+########
+# Vars #
+########
+
 $OutFilePath = "$PSScriptRoot\GetUpdateSourceFiles\SourceFiles"
 $Count = 0
 $ArticleIDCount = 0
@@ -170,6 +175,7 @@ Start-Transcript -Path `$file
 
 # User Output
 #############
+cls
 Write-Host ""
 Write-Host "Creating File Structure and Logging" -ForegroundColor Yellow
 Write-Host ""
