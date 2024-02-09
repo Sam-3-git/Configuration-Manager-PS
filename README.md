@@ -1,7 +1,7 @@
 <h3 align="center">Configuration Manager PS Scripts</h3>
 
 
-<p align = "center">Hello! 👋 Welcome to my repo of Config Man Powershell Scripts. Enjoy your stay!</p>
+<p align = "center">Hello! 👋 Welcome to my repo of Config Man Powershell Tools. Enjoy your stay!</p>
 
 
 ## Table of Contents
