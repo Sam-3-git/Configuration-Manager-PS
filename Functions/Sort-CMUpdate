@@ -1,0 +1,42 @@
+ # Get Windows Info Function
+Function Sort-CMUpdate {
+    <#
+    .DESCRIPTION
+        Function to sort Config Man Updates into designated folders
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(ValueFromPipeline=$True,
+                   HelpMessage="Objects produced by Get-CMSoftwareUpdates")]
+        [Microsoft.ConfigurationManagement.ManagementProvider.IResultObject[]]$InputObject
+    )
+    BEGIN {
+        Write-Verbose "BEGIN"
+        Write-Verbose "Initial PROCESS Count = 0"
+        $PCount=0
+        # Maybe build sort table Get-CMSoftwareUpdateCategory -fast | Select-Object CategoryTypeName, LocalizedCategoryInstanceName
+    }
+    PROCESS {
+        Write-Verbose "PROCESS BEGIN"
+        $PCount++
+        # CMSoftwareUpdate Input Object PARAM
+        #####################################
+        if ($InputObject) {
+            $InputObject | ForEach-Object -Begin {
+            } -Process {
+                Write-Verbose $_.LocalizedDisplayName
+            } -End {
+            }
+        }
+        # CMSoftwareUpdate Input Object PARAM
+        #####################################
+        Write-Verbose "PROCESS END"
+    }
+
+    END {
+        
+        Write-Verbose "END"
+        Write-Verbose "Processed $PCount"
+        Write-Verbose "Updates processed $($InputObject.Count)"
+    }
+}
