@@ -1,4 +1,4 @@
- # Get Windows Info Function
+ # Get Windows Info Function: Under construction
 Function Sort-CMUpdate {
     <#
     .DESCRIPTION
