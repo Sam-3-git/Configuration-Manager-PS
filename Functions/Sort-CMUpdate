@@ -1,5 +1,5 @@
- # Get Windows Info Function: Under construction
-Function Sort-CMUpdate {
+ # Sort-CMSoftwareUpdate Function: Under construction
+Function Sort-CMSoftwareUpdate {
     <#
     .DESCRIPTION
         Function to sort Config Man Updates into designated folders
