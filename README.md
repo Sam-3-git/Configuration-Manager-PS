@@ -1,4 +1,4 @@
-<h3 align="center">Configuration Manager PS Scripts</h3>
+<h3 align="center">Configuration Manager PS Repo</h3>
 
 
 <p align = "center">Hello! 👋 Welcome to my repo of Config Man Powershell Tools. Enjoy your stay!</p>
