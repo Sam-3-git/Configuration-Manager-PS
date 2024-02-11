@@ -1,5 +1,10 @@
- # Sort-CMSoftwareUpdate Function: Under construction
-Function Sort-CMSoftwareUpdate {
+# SAM
+# NEEDS TO PROCESS USER PASSED "PROPS OF CMSU"...NEEDS CREATION OF OUTPUT OBJECT...NEEDS PATH CREATION HANDLE... NEEDS TO LIMIT GETCMSUC TO JUST GET SUBSCRIBED FOR PERFORMANCE...
+# CURRENT RUN TIME 468ms on 671 objects
+# CURRENT RUN TIME 1.432s on 671 objects VERBOSE
+
+# Get Windows Info Function
+Function Sort-CMSoftwareUpdates {
     <#
     .DESCRIPTION
         Function to sort Config Man Updates into designated folders
@@ -7,36 +12,94 @@ Function Sort-CMSoftwareUpdate {
     [CmdletBinding()]
     PARAM(
         [Parameter(ValueFromPipeline=$True,
-                   HelpMessage="Objects produced by Get-CMSoftwareUpdates")]
-        [Microsoft.ConfigurationManagement.ManagementProvider.IResultObject[]]$InputObject
+                   HelpMessage="Accepts Objects produced by Get-CMSoftwareUpdates")]
+        [Microsoft.ConfigurationManagement.ManagementProvider.IResultObject[]]$InputObject,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [ValidateSet("UpdateClassification", "Company", "ProductFamily","Product")]
+        [string]$SortBy,
+
+        [Parameter(HelpMessage="Specifies additional filtering by LocalizedCategoryInstanceName.")]
+        [ValidateNotNullOrEmpty()]
+        [string[]]$SortFilter,
+
+        [Parameter(HelpMessage="Specifies the path to which updates will be sorted. Updates will be moved to this folder instead of the preset defined location.")]
+        [ValidateNotNullOrEmpty()]
+        [string]$SortPath,
+
+        [Parameter(HelpMessage="Passed arguments must match the update Article ID. Article IDs are integer values assigned to each software update.")]
+        [ValidateNotNullOrEmpty()]
+        [int[]]$ExcludeArticleID
+
+
     )
+
     BEGIN {
-        Write-Verbose "BEGIN"
+        Write-Verbose "BEGIN BLOCK BEGIN"
         Write-Verbose "Initial PROCESS Count = 0"
         $PCount=0
-        # Maybe build sort table Get-CMSoftwareUpdateCategory -fast | Select-Object CategoryTypeName, LocalizedCategoryInstanceName
+        Write-Verbose "SortBy = $SortBy"
+        Write-Verbose "SortFileter = $SortFilter"
+        Write-Verbose "SortPath = $SortPath"
+        Write-Verbose "ExcludeArticleID = $ExcludeArticleID"
+        # Create initial filter
+        if ($SortBy) {
+            $SortByLocalizedCategoryInstanceName = Get-CMSoftwareUpdateCategory -Fast | Where-Object -Property CategoryTypeName -eq $SortBy | Select-Object -ExpandProperty LocalizedCategoryInstanceName -Unique
+            Write-Verbose "Trimming SortBy filter..."
+            $SortByLocalizedCategoryInstanceName = $SortByLocalizedCategoryInstanceName.trim()
+            Write-Verbose "Initial Sort Filter Options:"
+            foreach ($i in $SortByLocalizedCategoryInstanceName) {
+                Write-Verbose $i
+            }
+        }
+        # Create extended filter and solidify folders
+        if ($SortFilter) {
+            Write-Verbose "SortFilter exists. creating updated filter..."
+            $SortFolder = $SortByLocalizedCategoryInstanceName | Where-Object {$SortFilter -contains $_}
+            Write-Verbose "Final filters:"
+            foreach ($i in $SortFolder) {
+                Write-Verbose $i
+            }
+            Write-Verbose "above will be used for folder creation"
+        }
+        else {
+            Write-Verbose "No additonal filters found"
+            $SortFolder = $SortByLocalizedCategoryInstanceName
+            Write-Verbose "Final filters:"
+            foreach ($i in $SortFolder) {
+                Write-Verbose $i
+            }
+            Write-Verbose "above will be used for folder creation"
+        }
+        Write-Verbose "BEGIN BLOCK END"
     }
     PROCESS {
-        Write-Verbose "PROCESS BEGIN"
+        Write-Verbose "PROCESS BLOCK BEGIN"
         $PCount++
         # CMSoftwareUpdate Input Object PARAM
         #####################################
         if ($InputObject) {
+            $InputObject = $InputObject
             $InputObject | ForEach-Object -Begin {
-            } -Process {
-                Write-Verbose $_.LocalizedDisplayName
+            } -Process {       
+                if (($_.ArticleID -notin $ExcludeArticleID) -and ($_.LocalizedCategoryInstanceNames -contains $SortFolder)) {
+                    Write-Verbose "Processing update: $($_.LocalizedDisplayName)"
+                    Write-Verbose "Instance Name: $($_.LocalizedCategoryInstanceNames.tolower().trim())"
+                    Write-Verbose "        ArticleID: $($_.ArticleID)"
+                }
             } -End {
             }
         }
         # CMSoftwareUpdate Input Object PARAM
         #####################################
-        Write-Verbose "PROCESS END"
+        Write-Verbose "PROCESS BLOCK END"
     }
 
     END {
         
-        Write-Verbose "END"
+        Write-Verbose "END BLOCK BEGIN"
         Write-Verbose "Processed $PCount"
-        Write-Verbose "Updates processed $($InputObject.Count)"
+        Write-Verbose "END BLOCK END"
     }
 }
