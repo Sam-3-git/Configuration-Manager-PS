@@ -1,7 +1,6 @@
 
 # SAM
 # NEEDS TO PROCESS USER PASSED "PROPS OF CMSU"...NEEDS CREATION OF OUTPUT OBJECT...NEEDS PATH CREATION HANDLE... NEEDS TO LIMIT GETCMSUC TO JUST GET SUBSCRIBED FOR PERFORMANCE...
-# CLEANUP TAKES WAY TOOOOO LONG>>>>>>>>> NEED TO FIX 
 # CURRENT RUN TIME 468ms on 671 objects
 # CURRENT RUN TIME 1.432s on 671 objects VERBOSE
 
@@ -91,12 +90,10 @@ Function Sort-CMSoftwareUpdates {
 
         # Clean up directive
         if ($Cleanup) {
-            Write-Verbose "Getting all updates Get-CMSoftware Update"
-            $AllUpdates = Get-CMSoftwareUpdate -Fast 
-            Write-Verbose "Found $($AllUpdates.count) CMSoftware Updates"
-            Write-Verbose "Moving objects..."
-            $AllUpdates | ForEach-Object {Move-CMObject -FolderPath "\SoftwareUpdate" -InputObject $_} 
-            Write-Verbose "Move object complete"
+            Write-Verbose "Getting all updates Get-CMSoftware Update with not root pathing"
+            $PathedUpdates = Get-CMSoftwareUpdate -Fast | Where-Object -Property ObjectPath -NE "/"
+            Write-Verbose "Found $($PathedUpdates.count) CMSoftware Objects"
+            $PathedUpdates | ForEach-Object {Move-CMObject -FolderPath "\SoftwareUpdate" -InputObject $_;Write-Verbose "Completed move on ArticleID $($_.ArticleID) to root"} 
             Write-Verbose "Removing folders under SoftwareUpdate..."
             Get-CMFolder -ParentFolderPath SoftwareUpdate | Remove-CMFolder -Force 
             Write-Verbose "Cleanup complete"
