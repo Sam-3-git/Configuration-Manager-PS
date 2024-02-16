@@ -1,5 +1,7 @@
+
 # SAM
 # NEEDS TO PROCESS USER PASSED "PROPS OF CMSU"...NEEDS CREATION OF OUTPUT OBJECT...NEEDS PATH CREATION HANDLE... NEEDS TO LIMIT GETCMSUC TO JUST GET SUBSCRIBED FOR PERFORMANCE...
+# CLEANUP TAKES WAY TOOOOO LONG>>>>>>>>> NEED TO FIX 
 # CURRENT RUN TIME 468ms on 671 objects
 # CURRENT RUN TIME 1.432s on 671 objects VERBOSE
 
@@ -30,7 +32,10 @@ Function Sort-CMSoftwareUpdates {
 
         [Parameter(HelpMessage="Passed arguments must match the update Article ID. Article IDs are integer values assigned to each software update.")]
         [ValidateNotNullOrEmpty()]
-        [int[]]$ExcludeArticleID
+        [int[]]$ExcludeArticleID,
+
+        [Parameter(HelpMessage="Moves all udpates to root and removes all folders")]
+        [switch]$Cleanup
 
 
     )
@@ -45,32 +50,56 @@ Function Sort-CMSoftwareUpdates {
         Write-Verbose "ExcludeArticleID = $ExcludeArticleID"
         # Create initial filter
         if ($SortBy) {
-            $SortByLocalizedCategoryInstanceName = Get-CMSoftwareUpdateCategory -Fast | Where-Object -Property CategoryTypeName -eq $SortBy | Select-Object -ExpandProperty LocalizedCategoryInstanceName -Unique
-            Write-Verbose "Trimming SortBy filter..."
-            $SortByLocalizedCategoryInstanceName = $SortByLocalizedCategoryInstanceName.trim()
-            Write-Verbose "Initial Sort Filter Options:"
+            $SortByLocalizedCategoryInstanceName = Get-CMSoftwareUpdateCategory -Fast | Where-Object {($_.CategoryTypeName -eq $SortBy) -and ($_.IsSubscribed -eq $true)} | Select-Object -ExpandProperty LocalizedCategoryInstanceName -Unique
+            Write-Verbose "Initial Sort by Options:"
             foreach ($i in $SortByLocalizedCategoryInstanceName) {
                 Write-Verbose $i
             }
         }
-        # Create extended filter and solidify folders
+        # Create extended filter
         if ($SortFilter) {
             Write-Verbose "SortFilter exists. creating updated filter..."
-            $SortFolder = $SortByLocalizedCategoryInstanceName | Where-Object {$SortFilter -contains $_}
             Write-Verbose "Final filters:"
-            foreach ($i in $SortFolder) {
+            foreach ($i in $SortFilter) {
                 Write-Verbose $i
             }
             Write-Verbose "above will be used for folder creation"
         }
         else {
             Write-Verbose "No additonal filters found"
-            $SortFolder = $SortByLocalizedCategoryInstanceName
+            $SortFilter = $SortByLocalizedCategoryInstanceName
             Write-Verbose "Final filters:"
-            foreach ($i in $SortFolder) {
+            foreach ($i in $SortFilter) {
                 Write-Verbose $i
             }
-            Write-Verbose "above will be used for folder creation"
+            Write-Verbose "above will be used for final filter"
+        }
+
+        # Create folder(s)
+        Write-Verbose "Checking for user defined sortpath"
+        if ($SortPath){
+            Write-Verbose "SortPath = $SortPath"
+            Write-Verbose "Setting SortFolder to $SortPath"
+            $SortFolder = $SortPath
+        }
+        else {
+            Write-Verbose "No user defined sortpath"
+            Write-Verbose "Using SortFilter for folder creation"
+            $SortFolder = $SortFilter
+            Write-Verbose "Sort Folder = $SortFolder"
+        }
+
+        # Clean up directive
+        if ($Cleanup) {
+            Write-Verbose "Getting all updates Get-CMSoftware Update"
+            $AllUpdates = Get-CMSoftwareUpdate -Fast 
+            Write-Verbose "Found $($AllUpdates.count) CMSoftware Updates"
+            Write-Verbose "Moving objects..."
+            $AllUpdates | ForEach-Object {Move-CMObject -FolderPath "\SoftwareUpdate" -InputObject $_} 
+            Write-Verbose "Move object complete"
+            Write-Verbose "Removing folders under SoftwareUpdate..."
+            Get-CMFolder -ParentFolderPath SoftwareUpdate | Remove-CMFolder -Force 
+            Write-Verbose "Cleanup complete"
         }
         Write-Verbose "BEGIN BLOCK END"
     }
@@ -80,13 +109,15 @@ Function Sort-CMSoftwareUpdates {
         # CMSoftwareUpdate Input Object PARAM
         #####################################
         if ($InputObject) {
-            $InputObject = $InputObject
             $InputObject | ForEach-Object -Begin {
             } -Process {       
-                if (($_.ArticleID -notin $ExcludeArticleID) -and ($_.LocalizedCategoryInstanceNames -contains $SortFolder)) {
-                    Write-Verbose "Processing update: $($_.LocalizedDisplayName)"
-                    Write-Verbose "Instance Name: $($_.LocalizedCategoryInstanceNames.tolower().trim())"
+                # Compare object
+                $CompareObject = Compare-Object -ReferenceObject $_.LocalizedCategoryInstanceNames -DifferenceObject $SortFilter -ExcludeDifferent -IncludeEqual
+                if (($_.ArticleID -notin $ExcludeArticleID) -and ($CompareObject)) {
+                    Write-Verbose "            Title: $($_.LocalizedDisplayName)"
+                    Write-Verbose     "Instance Name: $($_.LocalizedCategoryInstanceNames.tolower().trim())"
                     Write-Verbose "        ArticleID: $($_.ArticleID)"
+                    Write-Verbose "         Category: $($_.LocalizedCategoryInstanceNames)"
                 }
             } -End {
             }
