@@ -6,7 +6,7 @@ Function Add-CMDeviceCollectionFolders {
         Parameter to pass an array of folder names to create directory structure
     .EXAMPLE
         # Create Folders
-        Create-CMCollectionEnviorment -CMDeviceCollectionFolderArrayList $FoldersToCreate
+        Create-CMCollectionEnviorment  -CMDeviceCollectionFolderArrayList $FoldersToCreate
     #>
 
     PARAM (
