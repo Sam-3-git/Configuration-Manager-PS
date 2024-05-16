@@ -1,0 +1,34 @@
+Function Add-CMDeviceCollectionFolders {
+    <#
+    .DESCRIPTION
+        Function to create structure for desired CMDeviceCollection folders. Inteded use in Creat-CMCollectionEnviorment.ps1
+    .PARAMETER CMDeviceCollectionFolderArrayList
+        Parameter to pass an array of folder names to create directory structure
+    .EXAMPLE
+        # Create Folders
+        Create-CMCollectionEnviorment -CMDeviceCollectionFolderArrayList $FoldersToCreate
+    #>
+
+    PARAM (
+        [Parameter(Mandatory = $True)]
+        [ValidateNotNullOrEmpty()]
+        [System.Collections.ArrayList]$CMDeviceCollectionFolderArrayList
+    )
+
+    $CMDeviceCollectionFolderArrayList.ForEach({
+        if (Test-Path -Path "$SiteCode`:\DeviceCollection\$_") {
+            Write-Verbose "INFO: $SiteCode`:\DeviceCollection\$_ exists"
+        } else {
+            Write-Verbose "Warning: $SiteCode`:\DeviceCollection\$_ does not exist"
+            Write-Verbose "Creating..."
+            try {
+                New-CMFolder -Name $_ -ParentFolderPath DeviceCollection | Out-Null
+            } catch {
+                Write-Error "CRITICAL: Failed to create Folder $_"
+                Write-Host "exiting..." -ForegroundColor Red
+                pause
+                exit
+            }
+        }
+    })
+}
