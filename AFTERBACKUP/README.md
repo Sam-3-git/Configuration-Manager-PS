@@ -1,4 +1,4 @@
-# Additional Backup Steps for ConfigMgr Backup Process
+# Additional Backup Steps for ConfigMan Backup Process
 
 ## Introduction
 
