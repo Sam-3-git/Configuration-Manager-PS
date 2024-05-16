@@ -1,0 +1,80 @@
+Function Sort-CMDrivers {
+<#
+    .DESCRIPTION
+        Function to Sort Drivers into folders based on user criteria
+
+    .PARAMETER SortBy
+        User Criteria for Target Folder. If Folder does not exist, one will be created. 
+
+    .EXAMPLE
+        # Sort a single driver
+        Get-CMDriver -Name "Intel(R) Precise Touch Device" -Fast | Sort-CMDrivers -SortBy "Touch Drivers"
+   
+    .EXAMPLE
+        # Sort by user citeria
+        Get-CMDriver -Fast | Where-Object {$_.DriverProvider -eq "Microsoft"} | Sort-CMDrivers -SortBy "Microsoft"
+
+    .EXAMPLE
+        # Sort all drivers by class
+        Get-CMDriver -Fast | Select-Object -ExpandProperty DriverClass -Unique | ForEach-Object -Process {Get-CMDriver -Fast | Where-Object -Property DriverClass -EQ $_ | Sort-CMDrivers -SortBy $_}
+
+#>
+     [CmdletBinding()]
+    PARAM(
+        
+        [Parameter(ValueFromPipeline=$True, Mandatory = $True)]
+        [Microsoft.ConfigurationManagement.ManagementProvider.IResultObject[]]$InputObject,
+
+        [Parameter(Mandatory = $True)]
+        [ValidateNotNullOrEmpty()]
+        [string]$SortBy
+
+        )
+
+        BEGIN {
+            Write-Verbose ""
+            Write-Verbose "BEGIN BLOCK BEGIN"
+            Write-Verbose "Initial PROCESS Count = 0"
+            $SiteCode = Get-PSDrive -PSProvider CMSITE
+            $PCount=0
+            Write-Verbose "SortBy = $SortBy"
+
+            # Create Folder
+            Write-Verbose "Using $SortBy as Driver Filter and Folder Name"
+            $TestPath = Test-Path -Path "$($SiteCode.Name)`:\Driver\$SortBy"
+            if($TestPath) {
+                Write-Verbose "INFO: $($SiteCode.Name)`:\Driver\$SortBy exists"
+            } else {
+                Write-Verbose "INFO: $($SiteCode.Name)`:\Driver\$SortBy does not exist"
+                Write-Verbose "Creating..."
+                try {
+                    New-CMFolder -Name $SortBy -ParentFolderPath Driver | Out-Null
+                } catch {
+                    Write-Verbose "Warning: Failed to create Folder $SortBy".
+                    Write-Warning "Warning: Failed to create Folder $SortBy"
+                    return
+                }
+            }
+            Write-Verbose "BEGIN BLOCK END"
+        }
+
+        Process {
+            Write-Verbose "PROCESS BLOCK BEGIN"
+            $PCount++
+            if ($InputObject) {
+                $InputObject | ForEach-Object -Begin {
+                } -Process {       
+                    Move-CMObject -FolderPath "$($SiteCode.Name)`:\Driver\$Sortby" -InputObject $_
+                } -End {
+                }
+            }
+            Write-Verbose "PROCESS BLOCK END"
+        }
+
+        END {
+            Write-Verbose "END BLOCK BEGIN"
+            Write-Verbose "Processed $PCount"
+            Write-Verbose "END BLOCK END"
+            Write-Host "A reload of the console will be needed to see changes." -ForegroundColor Green
+        }
+}
