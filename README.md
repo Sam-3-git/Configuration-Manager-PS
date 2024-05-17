@@ -39,6 +39,14 @@ Script used to perform creation, modification, and removal of Software Update Gr
 - **DeleteSUG**
   - Specify SUG name(s) to delete. The passed SUG(s) will be removed.
 
+The passed parameters are run in the following order: 
+- `CreateSUG`
+- `TargetSUG`
+- `SourceSUG`
+- `RemoveAllUpdates`
+- `DeleteSUG`
+- `Menu`
+
 ### Examples
 
 ```powershell
@@ -67,13 +75,7 @@ SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -DeleteSU
 SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -CreateSUG "New SUG01" -TargetSUG "New SUG01" -SourceSUG "Old SUG01","Old SUG02" -RemoveAllUpdates "Old SUG01" -DeleteSUG "OldSUG02" -Menu
 ```
 
-The passed parameters are run in the following order: 
-- CreateSUG
-- TargetSUG
-- SourceSUG
-- RemoveAllUpdates
-- DeleteSUG
-- Menu
+
 
 ## Get Update Source Files <a name = "GetUpdateSourceFiles"></a>
 [Get-UpdateSourceFile](https://github.com/Sam-3-git/Configuration-Manager-PS-Scripts/blob/main/Scripts/Get-UpdateSourceFile.ps1)
@@ -84,18 +86,19 @@ Script used to obtain software update source binaries. This script will query co
 
 Target updates must be present in Config Man. Not tested with 3rd Party Update Publishers. 
 
-    .PARAMETER Articles
-        Specify Article IDs to search for in ConfigMan. Article IDs or Article Titles can also be passed.
+### Parameters
 
-    .PARAMETER SiteCode
-        ConfigMan Site Code
+- **Articles**
+  - Specify Article IDs to search for in ConfigMan. Article IDs or Article Titles can also be passed
+- **SiteCode**
+  - ConfigMan Site Code
+- **ProviderMachineName**
+  - ConfigMan Site Server FQDN
+- **GenerateScript**
+  - Switch to Generate a download script to use from an internet connected system
 
-    .PARAMETER ProviderMachineName
-        ConfigMan Site Server FQDN
 
-    .PARAMETER GenerateScript
-        Switch to Generate a download script to use from an internet connected system
-
+```powershell
     .EXAMPLE
         # To Download Files for one KB
         Get-UpdateSourceFiles.ps1  -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -Articles "5031539"
@@ -115,20 +118,23 @@ Target updates must be present in Config Man. Not tested with 3rd Party Update P
     .EXAMPLE
         # To download based off Wildcard. NOTE: passed argument will be processed as 1 Article
         Get-UpdateSourceFiles.ps1  -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -Articles "*Windows 10*"
+```
 
 ## Create CM Collection Enviorment <a name = "CreateCMCollectionEnviorment"></a>
 [Create-CMCollectionEnviorment](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Scripts/Create-CMCollectionEnviorment)
 
 Script used to create CM device collections for new or existing enviorments. Create-CMCollectionEnviorment.ps1 and Create-CMCollectionEnviorment.csv must be in the same directory when running Create-CMCollectionEnviorment.ps1. Simply add additional values to the csv if custom collections are wanted in addition to the exisiting Create-CMCollectionEnviorment.csv file. Some collections depend on additional hardware classes to be enabled in the Client Settings. 
 
-    .PARAMETER SiteCode
-        ConfigMan Site Code
+### Parameters
 
-    .PARAMETER ProviderMachineName
-        ConfigMan Site Server FQDN
-
+- **SiteCode**
+  - ConfigMan Site Code
+- **ProviderMachineName**
+  - ConfigMan Site Server FQDN
+```powershell
     .EXAMPLE
         Create-CMCollectionEnviorment.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain"
+```
 
 # Functions <a name = "Functions"></a>
 Various [Functions](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Functions) used for quick ConfigMan tasks.
@@ -136,7 +142,7 @@ Various [Functions](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/m
 [Sort-CMDrivers](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Functions/Sort-CMDrivers)
 
 This PowerShell function organizes Configuration Manager (CM) drivers based on a specified criterion ($SortBy). It creates folders under the "Driver" parent folder using $SortBy as the folder name, then moves CM objects into these folders according to the sorting criteria. Finally, it prompts the user to reload the CM console to view the changes.
-    
+```powershell
     .EXAMPLE
         # Sort a single driver
         Get-CMDriver -Name "Intel(R) Precise Touch Device" -Fast | Sort-CMDrivers -SortBy "Touch Drivers"
@@ -148,11 +154,12 @@ This PowerShell function organizes Configuration Manager (CM) drivers based on a
     .EXAMPLE
         # Sort all drivers by class
         Get-CMDriver -Fast | Select-Object -ExpandProperty DriverClass -Unique | ForEach-Object -Process {Get-CMDriver -Fast | Where-Object -Property DriverClass -EQ $_ | Sort-CMDrivers -SortBy $_}
+```
 
 [Write-Log](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Functions/Write-Log)
 
 This PowerShell function is designed to write logs that are easily interperted by CMTrace.exe.
-
+```powershell
     .EXAMPLE
     Write-Log -Message "Info: This is the start of the log" -Severity 1 -Component "BEGIN"
 
@@ -161,3 +168,4 @@ This PowerShell function is designed to write logs that are easily interperted b
 
     .EXAMPLE
     Write-Log -Message "Error: This is a terminiating error for some process... $SomeProcessPassedExitCode" -Severity 3 -Component "END"
+```
