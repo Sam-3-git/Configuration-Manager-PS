@@ -12,3 +12,9 @@ if not exist "%destinationFolder%" mkdir "%destinationFolder%"
 
 REM Export setupreg key to a .reg file in the destination folder
 reg export "%sourceKey%" "%destinationFolder%\Setup_Backup.reg" /y
+
+REM Backup content
+robocopy "<path to content>\SCCMContentLIB" "%destinationFolder%" /MIR
+
+REM Backup sources
+robocopy "<path to sources>" "%destinationFolder%" /MIR
