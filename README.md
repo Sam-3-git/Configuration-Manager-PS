@@ -1,82 +1,70 @@
-<h3 align="center">Configuration Manager PS Repo</h3>
+<h3 align="center">Configuration Manager Repo</h3>
 
-
-<p align = "center">Hello! 👋 Welcome to my repo of Config Man Powershell Tools. Enjoy your stay!</p>
-
+<p align="center">
+  Hello! 👋 Welcome to my repo of Configuration Manger tools. Enjoy your stay!
+</p>
 
 ## Table of Contents
 
-- [SUG Tool Box](#SUG-Tool-Box-)
-- [Get Update Source Files](#Get-Update-Source-Files-)
-- [Create CM Collection Enviorment](#Create-CM-Collection-Enviorment-)
-- [Functions](#functions-)
-    - Sort-CMDrivers
-    - Write-Log
+- [SUG Tool Box](#sug-tool-box)
+- [Get Update Source Files](#get-update-source-files)
+- [Create CM Collection Environment](#create-cm-collection-environment)
+- [Functions](#functions)
+  - [Sort-CMDrivers](#sort-cmdrivers)
+  - [Write-Log](#write-log)
 
 # Scripts
 
-## SUG Tool Box <a name = "SUGToolBox"></a>
-[Sug-Toolbox.ps1](https://github.com/Sam-3-git/Configuration-Manager-PS-Scripts/blob/main/Scripts/SUG-Toolbox.ps1)
+## SUG Tool Box <a name="sug-tool-box"></a>
+[SUG-Toolbox.ps1](https://github.com/Sam-3-git/Configuration-Manager-PS-Scripts/blob/main/Scripts/SUG-Toolbox.ps1)
 
-Script used to preform creation, modification, and removal of Software Update Groups. Contains a user driven menu to allow a more user friendly experience. 
+Script used to perform creation, modification, and removal of Software Update Groups. Contains a user-driven menu to allow a more user-friendly experience.
 
-Parameters
+### Parameters
 
-    .PARAMETER SiteCode
-        ConfigMan Site Code
+- **SiteCode**
+  - ConfigMan Site Code
+- **ProviderMachineName**
+  - ConfigMan Site Server FQDN
+- **Menu**
+  - Whether to run in menu mode. Menu mode allows the user to make selections based on input versus parameter mode where desired configurations are passed. Menu can be called to start the SUG Toolbox menu with any other parameters defined.
+- **CreateSUG**
+  - Specify a SUG name to create an empty SUG. CreateSUG is also available in MENU mode. Only one SUG can be created at a time with this parameter.
+- **TargetSUG**
+  - Specify SUG name(s) to target update membership. Target SUG(s) will be populated with any updates found in the SourceSUG(s). TargetSUG will only work with SourceSUG also defined.
+- **SourceSUG**
+  - Specify SUG name(s) to get update membership from. The Source SUG(s) will have their update membership scanned. Any updates found will be populated into the Target SUG. SourceSUG will only work when TargetSUG is also defined.
+- **RemoveAllUpdates**
+  - Specify SUG name(s) to remove all update membership. The passed SUG(s) will have all current update membership removed.
+- **DeleteSUG**
+  - Specify SUG name(s) to delete. The passed SUG(s) will be removed.
 
-    .PARAMETER ProviderMachineName
-        ConfigMan Site Server FQDN
+### Examples
 
-    .PARAMETER Menu
-        Whether to run in menu mode. Menu mode allows the user to make selections based on input versus paramater mode where desired configurations are passed. Menu can be called to start the SUG Toolbox menu with any other parameters defined
+```powershell
+# To start script in MENU mode
+SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -Menu
 
-    .PARAMETER CreateSUG
-        Specify a SUG name to create an empty SUG. CreateSUG is also available in MENU mode. Only One SUG can be created at a time with this paramater
+# To create a new empty SUG
+SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -CreateSUG "Example SUG01"
 
-    .PARAMETER TargetSUG
-        Specify SUG name(s) to target update membership. Target SUG(s) will be populated with any updates found in the SourceSUG(s). TargetSUG will only work with SourceSUG also defined.
+# To create a new empty SUG then start MENU mode
+SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -CreateSUG "Example SUG01" -Menu
 
-    .PARAMETER SourceSUG
-        Specify SUG name(s) to get update membership from. The Source SUG(s) will have their update membership scanned. Any updates found will be populated into the Target SUG. SourceSUG will only work when TargetSUG is also defined.
-   
-    .PARAMETER RemoveAllUpdates
-        Specify SUG name(s) to Remove All Update Membersip. The passed SUG(s) will have all current update membership removed.  
+# To create update membership on a Target SUG that is defined in a Source SUG
+SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -TargetSUG "No Membership SUG01" -SourceSUG "Many Update Membership SUG01"
 
-    .PARAMETER DeleteSUG
-        Specify SUG name(s) to Delete. The passed SUG(s) will be removed.  
+# To create update membership on a newly created Target SUG that is defined in multiple Source SUG(s)
+SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -CreateSUG "New SUG01" -TargetSUG "New SUG01" -SourceSUG "Many Update Membership SUG01","Many Update Membership SUG02"
 
-    .EXAMPLE
-        # To Start Script in MENU mode
-        SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -Menu
-   
-    .EXAMPLE
-        # To Create a new empty SUG
-        SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -CreateSUG "Example SUG01"
+# To remove all updates from SUG(s)
+SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -RemoveAllUpdates "Many Update Membership SUG01","Many Update Membership SUG02"
 
-    .EXAMPLE
-        # To Create a new empty SUG then start MENU mode
-        SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -CreateSUG "Example SUG01" -Menu
+# To delete SUG(s)
+SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -DeleteSUG "Old SUG01","Old SUG02"
 
-    .EXAMPLE
-        # To create update membership on a Target SUG that is definded in a Source SUG
-        SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -TargetSUG "No Membership SUG01" -SourceSUG "Many Update Membership SUG01"
-
-    .EXAMPLE
-        # To create update membership on a newely created Target SUG that is definded in multiple Source SUG(s).
-        SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -CreateSUG "New SUG01" -TargetSUG "New SUG01" -SourceSUG "Many Update Membership SUG01","Many Update Membership SUG02"
-   
-    .EXAMPLE
-        # To Remove all updates from SUG(s).
-        SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -RemoveAllUpdates "Many Update Membership SUG01","Many Update Membership SUG02"
-
-    .EXAMPLE
-        # To Delete SUG(s).
-        SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -DeleteSUG "Old SUG01","Old SUG02"
-
-    .EXAMPLE
-        # To do all operations.
-        SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -CreateSUG "New SUG01" -TargetSUG "New SUG01" -SourceSUG "Old SUG01","Old SUG02" -RemoveAllUpdates "Old SUG01" -DeleteSUG "OldSUG02" -Menu
+# To do all operations
+SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -CreateSUG "New SUG01" -TargetSUG "New SUG01" -SourceSUG "Old SUG01","Old SUG02" -RemoveAllUpdates "Old SUG01" -DeleteSUG "OldSUG02" -Menu
 
 The passed parameters are run in the following order: 
 - CreateSUG
@@ -144,10 +132,6 @@ Script used to create CM device collections for new or existing enviorments. Cre
 # Functions <a name = "Functions"></a>
 Various [Functions](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Functions) used for quick ConfigMan tasks.
 
-
-
-
-
 [Sort-CMDrivers](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Functions/Sort-CMDrivers)
 
 This PowerShell function organizes Configuration Manager (CM) drivers based on a specified criterion ($SortBy). It creates folders under the "Driver" parent folder using $SortBy as the folder name, then moves CM objects into these folders according to the sorting criteria. Finally, it prompts the user to reload the CM console to view the changes.
@@ -176,7 +160,3 @@ This PowerShell function is designed to write logs that are easily interperted b
 
     .EXAMPLE
     Write-Log -Message "Error: This is a terminiating error for some process... $SomeProcessPassedExitCode" -Severity 3 -Component "END"
-
-
-
-
