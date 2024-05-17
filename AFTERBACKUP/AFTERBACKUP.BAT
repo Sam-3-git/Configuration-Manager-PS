@@ -18,3 +18,6 @@ robocopy "<path to content>\SCCMContentLIB" "%destinationFolder%" /MIR
 
 REM Backup sources
 robocopy "<path to sources>" "%destinationFolder%" /MIR
+
+REM Backup Default Permissions
+icacls "<path to target folder>" /save "%destinationFolder%\BACKUPACL" /t /c /q
