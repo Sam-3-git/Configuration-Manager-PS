@@ -158,7 +158,7 @@ This PowerShell function organizes Configuration Manager (CM) drivers based on a
 
 [Write-Log](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Functions/Write-Log)
 
-This PowerShell function is designed to write logs that are easily interperted by CMTrace.exe.
+This PowerShell function is designed to write logs that are easily interperted by `CMTrace.exe`.
 ```powershell
     .EXAMPLE
     Write-Log -Message "Info: This is the start of the log" -Severity 1 -Component "BEGIN"
