@@ -10,8 +10,8 @@
 - [Get Update Source Files](#get-update-source-files)
 - [Create CM Collection Environment](#create-cm-collection-environment)
 - [Functions](#functions)
-  - [Sort-CMDrivers](#sort-cmdrivers)
-  - [Write-Log](#write-log)
+  - [Sort-CMDrivers]
+  - [Write-Log]
 
 # Scripts
 
@@ -77,7 +77,7 @@ SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -CreateSU
 
 
 
-## Get Update Source Files <a name = "GetUpdateSourceFiles"></a>
+## Get Update Source Files <a name = "get-update-source-files"></a>
 [Get-UpdateSourceFile](https://github.com/Sam-3-git/Configuration-Manager-PS-Scripts/blob/main/Scripts/Get-UpdateSourceFile.ps1)
 
 Script used to obtain software update source binaries. This script will query config man to pull microsoft download locations per target software update. There is the option to download to a source directory or create a download script which can be run on any internet connected system. Creates the following directory structure in the root of where script is run:
@@ -120,7 +120,7 @@ Target updates must be present in Config Man. Not tested with 3rd Party Update P
         Get-UpdateSourceFiles.ps1  -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -Articles "*Windows 10*"
 ```
 
-## Create CM Collection Enviorment <a name = "CreateCMCollectionEnviorment"></a>
+## Create CM Collection Enviorment <a name = "create-cm-collection-environment"></a>
 [Create-CMCollectionEnviorment](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Scripts/Create-CMCollectionEnviorment)
 
 Script used to create CM device collections for new or existing enviorments. `Create-CMCollectionEnviorment.ps1` and `Create-CMCollectionEnviorment.csv` must be in the same directory when running `Create-CMCollectionEnviorment.ps1`. Simply add additional values to the `.csv` if custom collections are wanted in addition to the exisiting `Create-CMCollectionEnviorment.csv` file. Some collections depend on additional hardware classes to be enabled in the Client Settings. 
@@ -136,7 +136,7 @@ Script used to create CM device collections for new or existing enviorments. `Cr
         Create-CMCollectionEnviorment.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain"
 ```
 
-# Functions <a name = "Functions"></a>
+# Functions <a name = "functions"></a>
 Various [Functions](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Functions) used for quick ConfigMan tasks.
 
 [Sort-CMDrivers](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Functions/Sort-CMDrivers)
