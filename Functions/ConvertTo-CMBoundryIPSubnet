@@ -1,0 +1,36 @@
+Function ConvertTo-CMBoundryIPSubnet {
+    <#
+    .DESCRIPTION
+        Function to create IPSubnet Boundries based of Active Directory
+
+    .EXAMPLE
+        Get-ADReplicationSubnet -Filter * | ConvertTo-CMBoundryIPSubnet
+
+    #> 
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [ValidateNotNullOrEmpty()]
+        [Microsoft.ActiveDirectory.Management.ADReplicationSubnet[]]$InputObject
+    )
+    Begin {
+        $Count = 0
+    }
+    Process {
+        foreach ($Subnet in $InputObject) {
+            $ShortName = $Subnet.site -replace "(CN=)(.*?),.*",'$2'
+            $ObjectName = "$ShortName - $($Subnet.Name)"
+            try {
+                New-CMBoundary -Name $ObjectName -Type IPSubnet -Value $Subnet.Name | Out-Null
+                $Count++
+            } catch {
+                Write-Host "$ObjectName failed" -ForegroundColor Red
+                $PSItem.Exception
+                Write-Host
+            }
+        }
+    }
+    End {
+        Write-Output "Created $Count IPSubnet Boundries based on Active Directory Data."
+    }
+}
