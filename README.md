@@ -141,7 +141,7 @@ Various [Functions](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/m
 
 [Sort-CMDrivers](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Functions/Sort-CMDrivers)
 
-This PowerShell function organizes Configuration Manager (CM) drivers based on a specified criterion ($SortBy). It creates folders under the "Driver" parent folder using $SortBy as the folder name, then moves CM objects into these folders according to the sorting criteria. Finally, it prompts the user to reload the CM console to view the changes.
+This PowerShell function organizes Configuration Manager (CM) drivers based on a specified criterion (`$SortBy`). It creates folders under the `Driver` parent folder using `$SortBy` as the folder name, then moves CM objects into these folders according to the sorting criteria. Finally, it prompts the user to reload the CM console to view the changes.
 ```powershell
     .EXAMPLE
         # Sort a single driver
