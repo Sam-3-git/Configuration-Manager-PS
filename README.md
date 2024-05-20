@@ -10,8 +10,8 @@
 - [Get Update Source Files](#get-update-source-files)
 - [Create CM Collection Environment](#create-cm-collection-environment)
 - [Functions](#functions)
-  - [Sort-CMDrivers]
-  - [Write-Log]
+  - Sort-CMDrivers
+  - Write-Log
 
 # Scripts
 
