@@ -97,6 +97,7 @@ Target updates must be present in Config Man. Not tested with 3rd Party Update P
 - **GenerateScript**
   - Switch to Generate a download script to use from an internet connected system
 
+### Examples
 
 ```powershell
     .EXAMPLE
@@ -131,6 +132,9 @@ Script used to create CM device collections for new or existing enviorments. `Cr
   - ConfigMan Site Code
 - **ProviderMachineName**
   - ConfigMan Site Server FQDN
+
+### Examples
+
 ```powershell
     .EXAMPLE
         Create-CMCollectionEnviorment.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain"
