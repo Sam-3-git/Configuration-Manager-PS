@@ -123,7 +123,7 @@ Target updates must be present in Config Man. Not tested with 3rd Party Update P
 ## Create CM Collection Enviorment <a name = "CreateCMCollectionEnviorment"></a>
 [Create-CMCollectionEnviorment](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Scripts/Create-CMCollectionEnviorment)
 
-Script used to create CM device collections for new or existing enviorments. Create-CMCollectionEnviorment.ps1 and Create-CMCollectionEnviorment.csv must be in the same directory when running Create-CMCollectionEnviorment.ps1. Simply add additional values to the csv if custom collections are wanted in addition to the exisiting Create-CMCollectionEnviorment.csv file. Some collections depend on additional hardware classes to be enabled in the Client Settings. 
+Script used to create CM device collections for new or existing enviorments. `Create-CMCollectionEnviorment.ps1` and `Create-CMCollectionEnviorment.csv` must be in the same directory when running `Create-CMCollectionEnviorment.ps1`. Simply add additional values to the `.csv` if custom collections are wanted in addition to the exisiting `Create-CMCollectionEnviorment.csv` file. Some collections depend on additional hardware classes to be enabled in the Client Settings. 
 
 ### Parameters
 
