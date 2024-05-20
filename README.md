@@ -16,7 +16,7 @@
 # Scripts
 
 ## SUG Tool Box <a name="sug-tool-box"></a>
-[SUG-Toolbox.ps1](https://github.com/Sam-3-git/Configuration-Manager-PS-Scripts/blob/main/Scripts/SUG-Toolbox.ps1)
+[SUG-Toolbox.ps1](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Scripts/SUG-Toolbox.ps1)
 
 Script used to perform creation, modification, and removal of Software Update Groups. Contains a user-driven menu to allow a more user-friendly experience.
 
@@ -78,7 +78,7 @@ SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -CreateSU
 
 
 ## Get Update Source Files <a name = "get-update-source-files"></a>
-[Get-UpdateSourceFile](https://github.com/Sam-3-git/Configuration-Manager-PS-Scripts/blob/main/Scripts/Get-UpdateSourceFile.ps1)
+[Get-UpdateSourceFile](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Scripts/Get-UpdateSourceFile.ps1)
 
 Script used to obtain software update source binaries. This script will query config man to pull microsoft download locations per target software update. There is the option to download to a source directory or create a download script which can be run on any internet connected system. Creates the following directory structure in the root of where script is run:
 - `\GetUpdateSourceFiles` (contains log files and any generated scripts)
