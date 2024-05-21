@@ -12,6 +12,7 @@
 - [Functions](#functions)
   - Sort-CMDrivers
   - Write-Log
+  - ConvertTo-CMBoundryIPSubnet
 
 # Scripts
 
