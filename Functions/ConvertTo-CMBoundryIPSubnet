@@ -1,7 +1,7 @@
 Function ConvertTo-CMBoundryIPSubnet {
     <#
     .DESCRIPTION
-        Function to create IPSubnet Boundries based of Active Directory
+        Function to create IPSubnet Boundries based on Active Directory. Adds CN of Site to description. 
 
     .EXAMPLE
         Get-ADReplicationSubnet -Filter * | ConvertTo-CMBoundryIPSubnet
