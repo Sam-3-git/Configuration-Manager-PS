@@ -173,3 +173,11 @@ This PowerShell function is designed to write logs that are easily interperted b
     .EXAMPLE
     Write-Log -Message "Error: This is a terminiating error for some process... $SomeProcessPassedExitCode" -Severity 3 -Component "END"
 ```
+
+[ConvertTo-CMBoundryIPSubnet](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Functions/ConvertTo-CMBoundryIPSubnet)
+
+This PowerShell function creates site boundries based off Active Directory Sites and Services. Uses a combination of Site Name properties and subnet values to create boundries that are easily identified. Does not work with ipv6 subnets. Function is designed to take input from `Get-ADReplicationSubnet`.
+```powershell
+    .EXAMPLE
+    Get-ADReplicationSubnet -Filter * | ConvertTo-CMBoundryIPSubnet
+```
