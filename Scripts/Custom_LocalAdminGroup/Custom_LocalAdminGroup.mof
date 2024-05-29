@@ -1,0 +1,18 @@
+//       5/29/2024 Sam Custom_LocalAdminGroup
+
+[ SMS_Report (TRUE),
+  SMS_Group_Name ("Custom_LocalAdminGroup"),
+  SMS_Class_ID ("Custom_LocalAdminGroup"),
+  Namespace ("\\\\\\\\.\\\\root\\\\cimv2") ]
+class Custom_LocalAdminGroup : SMS_Class_Template
+{
+    [ SMS_Report (TRUE), key ]     String     Account;
+    [ SMS_Report (TRUE), key ]     String     Domain;
+    [ SMS_Report (TRUE), key ]     String     Name;
+    [ SMS_Report (TRUE) ]    String     Category;
+    [ SMS_Report (TRUE) ]    String     Enabled;
+    [ SMS_Report (TRUE) ]    String     GroupSID;
+    [ SMS_Report (TRUE) ]    String     SID;
+    [ SMS_Report (TRUE) ]    DateTime   ScriptLastRan;
+    [ SMS_Report (TRUE) ]    String     Type;
+};
