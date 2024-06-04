@@ -88,6 +88,7 @@ Write-Host "Administration > Client Settings > Default Client Settings > Propert
 Write-Host "Click Set Classes > Add " -ForegroundColor Green
 Write-Host "Installed Software - Asset Intelligence (SMS_InstalledSoftware)" -ForegroundColor Cyan
 Write-Host "Software Licensing Product - Asset Intelligence (SoftwareLicensingProduct)" -ForegroundColor Cyan
+Write-Host "Client Diagnostics (CCM_ClientDiagnostics)" -ForegroundColor Cyan
 Write-Host "Please make your changes now then come back to continue script" -ForegroundColor Green
 pause
 Write-Host
