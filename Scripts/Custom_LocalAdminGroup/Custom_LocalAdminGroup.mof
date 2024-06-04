@@ -7,12 +7,10 @@
 class Custom_LocalAdminGroup : SMS_Class_Template
 {
     [ SMS_Report (TRUE), key ]     String     Account;
-    [ SMS_Report (TRUE), key ]     String     Domain;
-    [ SMS_Report (TRUE), key ]     String     Name;
-    [ SMS_Report (TRUE) ]    String     Category;
-    [ SMS_Report (TRUE) ]    String     Enabled;
-    [ SMS_Report (TRUE) ]    String     GroupSID;
+    [ SMS_Report (TRUE)]     String     Domain;
     [ SMS_Report (TRUE) ]    String     SID;
-    [ SMS_Report (TRUE) ]    DateTime   ScriptLastRan;
-    [ SMS_Report (TRUE) ]    String     Type;
+    [ SMS_Report (TRUE) ]    String     PrincipalSource;
+    [ SMS_Report (TRUE) ]    String     ObjectClass;
+    [ SMS_Report (TRUE) ]    String     Enabled;
+    [ SMS_Report (TRUE) ]    String     PasswordLastSet;
 };

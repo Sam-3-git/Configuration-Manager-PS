@@ -7,23 +7,18 @@ if ( (Get-CimInstance -ClassName win32_computerSystem -Namespace 'root\cimv2').D
 # Vars #
 ########
 $Custom_LocalAdminGroup = "CCM_LocalAdminGroupDetails"
-$Today = Get-Date
-$CIBaselineRunTime = [System.Management.ManagementDateTimeConverter]::ToDmtfDateTime($Today) # converted to allow WMI insert
 $LocalAdminGroup = Get-LocalGroup -Name Administrators | Select-Object -Property *
 $Members = Get-LocalGroupMember -Name Administrators | Select-Object -Property *
-$ExitCode = 0 # Exit code to check for on CI 0 = Success / Other than 0 = Failure
 
 #############
 # Functions #
 #############
 Function Create-CustomLocalAdminGroup { 
-    # NEED TO ADJUST 5/29
     $New_Custom_LocalAdminGroup = New-Object System.Management.ManagementClass ("root\cimv2", [String]::Empty, $Null); 
     $New_Custom_LocalAdminGroup['__CLASS'] = $Custom_LocalAdminGroup
     $New_Custom_LocalAdminGroup.Properties.Add("Account",[System.Management.CimType]::String, $false)
     $New_Custom_LocalAdminGroup.Properties["Account"].Qualifiers.Add("Key", $true)
     $New_Custom_LocalAdminGroup.Properties.Add("Domain",[System.Management.CimType]::String, $false)
-    $New_Custom_LocalAdminGroup.Properties["Domain"].Qualifiers.Add("Key", $true)
     $New_Custom_LocalAdminGroup.Properties.Add("SID",[System.Management.CimType]::String, $false)
     $New_Custom_LocalAdminGroup.Properties.Add("PrincipalSource",[System.Management.CimType]::String, $false)
     $New_Custom_LocalAdminGroup.Properties.Add("ObjectClass",[System.Management.CimType]::String, $false)
@@ -36,6 +31,7 @@ Function Create-CustomLocalAdminGroup {
 # MAIN #
 ########
 $CreateCustom_LocalAdminGroup = Create-CustomLocalAdminGroup
+Get-WmiObject -Namespace root\cimv2 -class $Custom_LocalAdminGroup | Remove-WMIOBject # having issues updating based on key values..
 ForEach ($Member in $Members) {
     $GetLocalUser = $null
     $PasswordLastSet = $null
@@ -54,7 +50,7 @@ ForEach ($Member in $Members) {
         ObjectClass = $Member.ObjectClass
         Enabled = $Enabled
         PasswordLastSet = $PasswordLastSet
-    } | Out-Null  
+    } | Out-Null
 }
 
 
