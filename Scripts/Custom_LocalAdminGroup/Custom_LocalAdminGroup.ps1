@@ -1,8 +1,3 @@
-# DC Check
-if ( (Get-CimInstance -ClassName win32_computerSystem -Namespace 'root\cimv2').DomainRole -in (4,5)) { 
-    exit 0
-}
-
 ########
 # Vars #
 ########
@@ -51,12 +46,13 @@ ForEach ($Member in $Members) {
         Enabled = $Enabled
         PasswordLastSet = $PasswordLastSet
     } | Out-Null
+}   
+
+# Exit
+######
+$ClassExists = Get-WmiObject -Namespace root\cimv2 -class $Custom_LocalAdminGroup
+If ($ClassExists) {
+    Write-Output 0
+} else {
+    Write-Output 1
 }
-
-
-
-
-
-
-
-    
