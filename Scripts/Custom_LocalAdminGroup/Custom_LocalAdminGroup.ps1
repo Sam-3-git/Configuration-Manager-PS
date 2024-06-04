@@ -24,11 +24,11 @@ Function Create-CustomLocalAdminGroup {
     $New_Custom_LocalAdminGroup.Properties["Account"].Qualifiers.Add("Key", $true)
     $New_Custom_LocalAdminGroup.Properties.Add("Domain",[System.Management.CimType]::String, $false)
     $New_Custom_LocalAdminGroup.Properties["Domain"].Qualifiers.Add("Key", $true)
-    $New_Custom_LocalAdminGroup.Properties.Add("SID",[System.Management.CimType]::string, $false)
+    $New_Custom_LocalAdminGroup.Properties.Add("SID",[System.Management.CimType]::String, $false)
     $New_Custom_LocalAdminGroup.Properties.Add("PrincipalSource",[System.Management.CimType]::String, $false)
     $New_Custom_LocalAdminGroup.Properties.Add("ObjectClass",[System.Management.CimType]::String, $false)
-    $New_Custom_LocalAdminGroup.Properties.Add("Enabled",[System.Management.CimType]::string, $false)
-    $New_Custom_LocalAdminGroup.Properties.Add("PasswordLastSet",[System.Management.CimType]::Date, $false)
+    $New_Custom_LocalAdminGroup.Properties.Add("Enabled",[System.Management.CimType]::String, $false)
+    $New_Custom_LocalAdminGroup.Properties.Add("PasswordLastSet",[System.Management.CimType]::String, $false)
     $New_Custom_LocalAdminGroup.Put() | Out-Null
 } 
 
