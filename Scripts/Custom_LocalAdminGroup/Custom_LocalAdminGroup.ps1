@@ -24,14 +24,11 @@ Function Create-CustomLocalAdminGroup {
     $New_Custom_LocalAdminGroup.Properties["Account"].Qualifiers.Add("Key", $true)
     $New_Custom_LocalAdminGroup.Properties.Add("Domain",[System.Management.CimType]::String, $false)
     $New_Custom_LocalAdminGroup.Properties["Domain"].Qualifiers.Add("Key", $true)
-    $New_Custom_LocalAdminGroup.Properties.Add("PrincipalSource",[System.Management.CimType]::String, $false)
-    $New_Custom_LocalAdminGroup.Properties.Add("Type",[System.Management.CimType]::String, $false)
-    $New_Custom_LocalAdminGroup.Properties.Add("Name",[System.Management.CimType]::String, $false)
-    $New_Custom_LocalAdminGroup.Properties["Name"].Qualifiers.Add("Key", $true)
-    $New_Custom_LocalAdminGroup.Properties.Add("Enabled",[System.Management.CimType]::string, $false)
     $New_Custom_LocalAdminGroup.Properties.Add("SID",[System.Management.CimType]::string, $false)
-    $New_Custom_LocalAdminGroup.Properties.Add("GroupSID",[System.Management.CimType]::string, $false)
-    $New_Custom_LocalAdminGroup.Properties.Add("CIBaselineLastRan",[System.Management.CimType]::DateTime, $false)
+    $New_Custom_LocalAdminGroup.Properties.Add("PrincipalSource",[System.Management.CimType]::String, $false)
+    $New_Custom_LocalAdminGroup.Properties.Add("ObjectClass",[System.Management.CimType]::String, $false)
+    $New_Custom_LocalAdminGroup.Properties.Add("Enabled",[System.Management.CimType]::string, $false)
+    $New_Custom_LocalAdminGroup.Properties.Add("PasswordLastSet",[System.Management.CimType]::Date, $false)
     $New_Custom_LocalAdminGroup.Put() | Out-Null
 } 
 
@@ -40,24 +37,21 @@ Function Create-CustomLocalAdminGroup {
 ########
 $CreateCustom_LocalAdminGroup = Create-CustomLocalAdminGroup
 ForEach ($Member in $Members) {
-    $Name = $Member.Name
-    $PrincipalSource = $Member.PrincipalSource
-    $SID = $Member.SID
-    $Enabled = Get-LocalUser -SID $SID | Select-Object -ExpandProperty Enabled
-
-    <# NEED TO ADJUST 5/29
+    # we are only checking for local accounts for enabled and passwordsettings
+    if (($Member.PrincipalSource -eq 'Local') -and ($Member.ObjectClass -eq 'User')) {
+        $GetLocalUser = Get-LocalUser -SID $Member.SID | Select-Object *
+        $PasswordLastSet = $GetLocalUser.PasswordLastSet
+        $Enabled = $GetLocalUser.Enabled    
+    }
     Set-WmiInstance -Namespace root\cimv2 -class $Custom_LocalAdminGroup -arguments @{
-        Account = $name
-        Domain = $Domain
-        PrincipalSource = $PrincipalSource
-        SID = $SID
-        GroupSID = (Get-LocalGroup -Name $TheName.Name).SID
-        Type = $Type
-        Name = $TheName.Name
-        CIBaselineLastRan=$CIBaselineRunTime
-        Enabled = $Enabled.Enabled
-    } | Out-Null
-    #>
+        Account = $Member.Name
+        Domain = $env:USERDOMAIN
+        SID = $Member.SID
+        PrincipalSource = $Member.PrincipalSource
+        ObjectClass = $Member.ObjectClass
+        Enabled = $Enabled
+        PasswordLastSet = $PasswordLastSet
+    } | Out-Null  
 }
 
 
