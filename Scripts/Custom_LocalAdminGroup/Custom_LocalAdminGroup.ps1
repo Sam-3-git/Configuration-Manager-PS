@@ -31,7 +31,7 @@ Function Create-CustomLocalAdminGroup {
 # MAIN #
 ########
 $CreateCustom_LocalAdminGroup = Create-CustomLocalAdminGroup
-Get-WmiObject -Namespace root\cimv2 -class $Custom_LocalAdminGroup | Remove-WMIOBject # having issues updating based on key values..
+Get-WmiObject -Namespace root\cimv2 -class $Custom_LocalAdminGroup | Remove-WMIOBject # having issues updating based on key values.. simply wiping old instances on rerun then populating current values...
 ForEach ($Member in $Members) {
     $GetLocalUser = $null
     $PasswordLastSet = $null
