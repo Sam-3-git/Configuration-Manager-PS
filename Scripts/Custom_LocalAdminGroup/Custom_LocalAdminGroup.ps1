@@ -39,6 +39,9 @@ $CreateCustom_LocalAdminGroup = Create-CustomLocalAdminGroup
 ForEach ($Member in $Members) {
     # we are only checking for local accounts for enabled and passwordsettings
     if (($Member.PrincipalSource -eq 'Local') -and ($Member.ObjectClass -eq 'User')) {
+        $GetLocalUser = $null
+        $PasswordLastSet = $null
+        $Enabled = $null
         $GetLocalUser = Get-LocalUser -SID $Member.SID | Select-Object *
         $PasswordLastSet = $GetLocalUser.PasswordLastSet
         $Enabled = $GetLocalUser.Enabled    
