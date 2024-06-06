@@ -74,7 +74,7 @@ Set-Location "$($SiteCode):\" @initParams
 # VARS #
 ########
 $Mof = "$PSScriptRoot\Custom_LocalAdminGroup.mof"
-$CIScript = "$PSScriptRoot\Custom_LocalAdminGroup.ps1"
+$CBCab = "$PSScriptRoot\Create WMI Class CCM_LocalAdminGroupDetails.cab"
 
 #############
 # Functions #
@@ -130,46 +130,11 @@ if (Test-Path $Mof) {
     Write-Log -Message "ERROR: Getting $Mof content" -Severity 3 -Component "MAIN"   
     Exit-Script 
 }
-if (Test-Path $CIScript) {
-    $CIScriptContent = Get-Content -path $CIScript
-    Write-Log -Message "INFO: Getting $CIScript content" -Severity 1 -Component "MAIN"
+if (Test-Path $CBCab) {
+
 } else {
-    Write-Error "Unable to verify $CIScript"
-    Write-Log -Message "ERROR: Getting $CIScript content" -Severity 3 -Component "MAIN"   
+    Write-Error "Unable to verify $CBCab"
+    Write-Log -Message "ERROR: Getting $CBCab content" -Severity 3 -Component "MAIN"   
     Exit-Script
 }
 
-# create and store CB / CI to set later. 
-try {
-    New-CMBaseline -Name 'Create - WMIClass_CCM_LocalAdminGroupDetails' -Description "Created by Custom_LocalAdminGroupSEtup.ps1. logs can be found at $PSScriptRoot. Intended to contain only CI CCM_LocalAdminGroupDetails." | Out-Null   
-    $CB = Get-CMBaseLine -Name 'Create - WMIClass_CCM_LocalAdminGroupDetails'
-    Write-Log -Message "INFO: Created and stored $($CB.LocalizedDisplayName)" -Severity 1 -Component 'MAIN'
-}
-catch {
-    $PSItem
-    Write-Error 'Unable to create baselines'
-    Write-Log -Message "ERROR: Create baseline" -Severity 3 -Component 'MAIN'
-    Exit-Script
-}
-try {
-    New-CMConfigurationItem -CreationType WindowsOS -Name "CCM_LocalAdminGroupDetails" | Out-Null
-    $CI = Get-CMConfigurationItem -Name 'CCM_LocalAdminGroupDetails'
-    Write-Log -Message "INFO: Created and stored $($CI.LocalizedDisplayName)" -Severity 1 -Component 'MAIN'
-}
-catch {
-    $PSItem
-    Write-Error 'Unable to create configuration items'
-    Write-Log -Message "ERROR: Create configuration item" -Severity 3 -Component 'MAIN'
-    Exit-Script
-}
-
-# set all CI and CB settings
-try {
-
-}
-catch {
-    $PSItem
-    Write-Error 'Unable to set Config Items and Config Baselines'
-    Write-Log -Message "ERROR: Set configuration item or config baseline" -Severity 3 -Component 'MAIN'
-    Exit-Script
-}
