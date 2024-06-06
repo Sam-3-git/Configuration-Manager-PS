@@ -138,3 +138,8 @@ if (Test-Path $CBCab) {
     Exit-Script
 }
 
+# Deploy imported baseline to CMDeviceCollectionName: Default all desktop and server clients
+Import-CMConfigurationItem -FileName $CBCab -Force 
+$Baseline = Get-CMBaseline -Fast -Name 'Create WMI Class CCM_LocalAdminGroupDetails'
+$BaselineSchedule = New-CMSchedule -DurationInterval Days -DurationCount 0 -RecurInterval Days -RecurCount 1
+$Baseline | New-CMBaselineDeployment -CollectionName $CMDeviceCollectionName -Schedule $BaselineSchedule | Out-Null
