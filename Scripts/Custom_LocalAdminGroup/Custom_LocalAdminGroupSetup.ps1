@@ -143,3 +143,12 @@ Import-CMConfigurationItem -FileName $CBCab -Force
 $Baseline = Get-CMBaseline -Fast -Name 'Create WMI Class CCM_LocalAdminGroupDetails'
 $BaselineSchedule = New-CMSchedule -DurationInterval Days -DurationCount 0 -RecurInterval Days -RecurCount 1
 $Baseline | New-CMBaselineDeployment -CollectionName $CMDeviceCollectionName -Schedule $BaselineSchedule | Out-Null
+
+# no cmndlet way to import mof for client settings. pivoting to wmi methods. Used debug in console to find required info.
+# need to add mof file to import class in default settings.
+$WMIArguments = @{
+    InventoryReportID = '{00000000-0000-0000-0000-000000000001}'
+    ImportType = [uint32]3
+    MofBuffer = [string]($MofContent -join "`r`n")
+}
+Invoke-CMWmiMethod -ClassName 'SMS_InventoryReport' -MethodName 'ImportInventoryReport' -Parameter $WMIArguments
