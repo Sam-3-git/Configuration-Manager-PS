@@ -23,8 +23,8 @@
         Target CMDeviceCollection for baseline deployment. Default is All Desktop and Server Clients
 
     .EXAMPLE
-        # To Start Script in MENU mode
-        SUG-Toolbox.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain" -Menu
+        # Delply to a custom collection
+        Custom_LocalAdminGroupSetup.ps1 -SiteCode ABC -ProviderMachineName host.domain -CMDeviceCollectionName ''
 #>
 
 ##########
@@ -122,10 +122,12 @@ Write-Host
 Write-Host
 
 # need to verify source files are in path and get content
+Write-Host "Checking if required files are present in root directory"
 if (Test-Path $Mof) {
     $MofContent = Get-Content -path $Mof
     Write-Log -Message "INFO: Getting $Mof content" -Severity 1 -Component "MAIN"
 } else {
+    $PSSItem
     Write-Error "Unable to verify $Mof exists"
     Write-Log -Message "ERROR: Getting $Mof content" -Severity 3 -Component "MAIN"   
     Exit-Script 
@@ -133,22 +135,67 @@ if (Test-Path $Mof) {
 if (Test-Path $CBCab) {
 
 } else {
+    $PSSITem
     Write-Error "Unable to verify $CBCab"
     Write-Log -Message "ERROR: Getting $CBCab content" -Severity 3 -Component "MAIN"   
     Exit-Script
 }
+Write-Host "Success!" -ForegroundColor Green
+Write-Host
 
 # Deploy imported baseline to CMDeviceCollectionName: Default all desktop and server clients
-Import-CMConfigurationItem -FileName $CBCab -Force 
-$Baseline = Get-CMBaseline -Fast -Name 'Create WMI Class CCM_LocalAdminGroupDetails'
-$BaselineSchedule = New-CMSchedule -DurationInterval Days -DurationCount 0 -RecurInterval Days -RecurCount 1
-$Baseline | New-CMBaselineDeployment -CollectionName $CMDeviceCollectionName -Schedule $BaselineSchedule | Out-Null
+Write-Host "Setting up baseline components"
+try {
+    Write-Host "Importing baseline from source files"
+    Import-CMConfigurationItem -FileName $CBCab -Force
+    Write-Host "Success!" -ForegroundColor Green
+    Write-Host
+    Write-Log -Message "INFO: Imported Baseline" -Severity 1 -Component "MAIN"
+    Write-Host "Getting Baseline"
+    $Baseline = Get-CMBaseline -Fast -Name 'Create WMI Class CCM_LocalAdminGroupDetails'
+    Write-Host "Success!" -ForegroundColor Green
+    Write-Host
+    Write-Log -Message "INFO: Retrieved Baseline" -Severity 1 -Component "MAIN"
+    Write-Host "Creating Baseline Schedule"
+    $BaselineSchedule = New-CMSchedule -DurationInterval Days -DurationCount 0 -RecurInterval Days -RecurCount 1
+    Write-Host "Success!" -ForegroundColor Green
+    Write-Host
+    Write-Log -Message "INFO: Created Schedule" -Severity 1 -Component "MAIN"
+    Write-Host "Deploying baseline to $CMDeviceCollectionName"
+    $Baseline | New-CMBaselineDeployment -CollectionName $CMDeviceCollectionName -Schedule $BaselineSchedule | Out-Null  
+    Write-Host "Success!" -ForegroundColor Green
+    Write-Host
+    Write-Log -Message "INFO: Deployed Baseline" -Severity 1 -Component "MAIN"  
+}
+catch {
+    $PSSITem
+    Write-Error "Unable to setup baselines"
+    Write-Log -Message "ERROR: Unable to setup Baselines" -Severity 3 -Component "MAIN"   
+    Exit-Script
+}
+Write-Host "All baseline components successfull!" -ForegroundColor Green
+Write-Host
 
 # no cmndlet way to import mof for client settings. pivoting to wmi methods. Used debug in console to find required info.
 # need to add mof file to import class in default settings.
-$WMIArguments = @{
-    InventoryReportID = '{00000000-0000-0000-0000-000000000001}'
-    ImportType = [uint32]3
-    MofBuffer = [string]($MofContent -join "`r`n")
+try {
+    $WMIArguments = @{
+        InventoryReportID = '{00000000-0000-0000-0000-000000000001}'
+        ImportType = [uint32]3
+        MofBuffer = [string]($MofContent -join "`r`n")
+    }
+    Invoke-CMWmiMethod -ClassName 'SMS_InventoryReport' -MethodName 'ImportInventoryReport' -Parameter $WMIArguments | Out-Null    
+    Write-Log -Message "INFO: Imported MOF to default Client Settings"
 }
-Invoke-CMWmiMethod -ClassName 'SMS_InventoryReport' -MethodName 'ImportInventoryReport' -Parameter $WMIArguments
+catch {
+    $PSSITem
+    Write-Error "Unable to invoke CM WMI"
+    Write-Log -Message "ERROR: Unable to invoke CM WMI" -Severity 3 -Component "MAIN"   
+    Exit-Script
+}
+Write-Host "Success!" -ForegroundColor Green
+Write-Host
+
+# return user back to where they started. 
+Write-Host "All directeves completed for CCM_LocalAdminGroupSetup."
+Exit-Script
