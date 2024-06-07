@@ -261,9 +261,10 @@ Add-CMDeviceCollectionFolders -CMDeviceCollectionFolderArrayList $FolderArray
 $CMDataSet | ForEach-Object -Begin {
     $NoQueryPattern = '\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b'
 } -Process {
-    Write-Host # Spacing
     $CollectionObject = [Collection]@{Name=$_.Name;Query=$_.Query;Comment=$_.Comment;Limit=$_.Limit;Folder=$_.Folder;SiteCode=$SiteCode}
     $return = $CollectionObject.create()
+    Write-Host # Spacing
+    $return
     switch ($return) {
         "Skipping $($CollectionObject.Name); already exists" {
             # DO NOTHING AS COLLECTION ALREADY EXISTS
