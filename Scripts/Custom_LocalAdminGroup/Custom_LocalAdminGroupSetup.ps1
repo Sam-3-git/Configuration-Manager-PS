@@ -39,7 +39,7 @@ PARAM (
     [String]$ProviderMachineName,
 
     [Parameter()]
-    [String]$CMDeviceCollectionName='All Desktop and Server Clients',
+    [String]$CMDeviceCollectionName='All Desktop and Server Clients'
 
 )
 
