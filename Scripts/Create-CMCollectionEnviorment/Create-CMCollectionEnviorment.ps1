@@ -268,7 +268,7 @@ $CMDataSet | ForEach-Object -Begin {
     switch ($return) {
         "Skipping $($CollectionObject.Name); already exists" {
             # DO NOTHING AS COLLECTION ALREADY EXISTS
-        }
+        } # NEED TO WORK ON BELOW SWITCH CASE
         {$_ -match $NoQueryPattern} { # no need to inject maintenance window collections. maint win collec will always have day of week in the name. 
             $CollectionObject.window()
             $CollectionObject.move()  
