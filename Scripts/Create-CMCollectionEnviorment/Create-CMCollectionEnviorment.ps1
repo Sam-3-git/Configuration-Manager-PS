@@ -189,7 +189,7 @@ class Collection {
         [string]$return = $null
         [string]$pattern = $null
         [string]$day = $null
-        [string]$MWSchedule = $null
+        [Microsoft.ConfigurationManagement.ManagementProvidor.IResultObject]$MWSchedule = $null
         try {
             $pattern = '\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b'
             if ($this.Name -match $pattern) {
