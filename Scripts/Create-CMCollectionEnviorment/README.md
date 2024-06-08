@@ -9,6 +9,6 @@ Script used to create CM device collections for new or existing enviorments. Cre
 
 Additional Hardware Inventory classes that are required in the default settings.
 
- -Installed Software - Asset Intelligence (SMS_InstalledSoftware) 
- -Software Licensing Product - Asset Intelligence (SoftwareLicensingProduct) 
- -Client Diagnostics (CCM_ClientDiagnostics) 
+ -- Installed Software - Asset Intelligence (SMS_InstalledSoftware) 
+ -- Software Licensing Product - Asset Intelligence (SoftwareLicensingProduct) 
+ -- Client Diagnostics (CCM_ClientDiagnostics) 
