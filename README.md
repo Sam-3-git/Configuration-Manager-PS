@@ -125,21 +125,32 @@ Target updates must be present in Config Man. Not tested with 3rd Party Update P
 ## Create CM Collection Enviorment <a name = "create-cm-collection-environment"></a>
 [Create-CMCollectionEnviorment](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Scripts/Create-CMCollectionEnviorment)
 
-Script used to create CM device collections for new or existing enviorments. `Create-CMCollectionEnviorment.ps1` and `Create-CMCollectionEnviorment.csv` must be in the same directory when running `Create-CMCollectionEnviorment.ps1`. Simply add additional values to the `.csv` if custom collections are wanted in addition to the exisiting `Create-CMCollectionEnviorment.csv` file. Some collections depend on additional hardware classes to be enabled in the Client Settings. 
+This script is designed to make device collections and sort them into orginized folders. The script will create a collection, inject a query if necessary, and move the collection to an appropriate folder. 
 
-### Parameters
+### Installation Guide
 
-- **SiteCode**
-  - ConfigMan Site Code
-- **ProviderMachineName**
-  - ConfigMan Site Server FQDN
+1. Download the necessary scripts and files:
+   - [Create-CMCollectionEnviorment.csv](link-to-zip-file)
+   - [Create-CMCollectionEnviorment.ps1](link-to-zip-file)
 
-### Examples
-
+3. Run the script with the appropriate parameters:
+   - Ensure you have the necessary permissions (Full Administrator role in SCCM).
+   - Navigate to the directory where you downloaded the files.
+   
 ```powershell
-    .EXAMPLE
-        Create-CMCollectionEnviorment.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain"
+.\CCM_LocalAdminGroupSetup.ps1 -SiteCode <YourSiteCode> -ProviderMachineName <YourProviderMachineName>
 ```
+
+### Notes
+- Ensure that `Create-CMCollectionEnviorment.csv` is in the same root directory as the script.
+- If in a CAS environment, run this script at the CAS level.
+- An update to membership collection may be required after creation.
+- A reload to the console will be necessary for new device collection folders to be viewed.
+- Additional Hardware Inventory classes are required in the default settings.
+    - Installed Software - Asset Intelligence (SMS_InstalledSoftware) 
+    - Software Licensing Product - Asset Intelligence (SoftwareLicensingProduct)
+    - Client Diagnostics (CCM_ClientDiagnostics)
+
 
 # Functions <a name = "functions"></a>
 Various [Functions](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Functions) used for quick ConfigMan tasks.
