@@ -15,7 +15,7 @@
   - ConvertTo-CMBoundryIPSubnet
 
 # Scripts
-
+---
 ## SUG Tool Box <a name="sug-tool-box"></a>
 [SUG-Toolbox.ps1](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Scripts/SUG-Toolbox.ps1)
 
@@ -125,23 +125,74 @@ Target updates must be present in Config Man. Not tested with 3rd Party Update P
 ## Create CM Collection Enviorment <a name = "create-cm-collection-environment"></a>
 [Create-CMCollectionEnviorment](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Scripts/Create-CMCollectionEnviorment)
 
-Script used to create CM device collections for new or existing enviorments. `Create-CMCollectionEnviorment.ps1` and `Create-CMCollectionEnviorment.csv` must be in the same directory when running `Create-CMCollectionEnviorment.ps1`. Simply add additional values to the `.csv` if custom collections are wanted in addition to the exisiting `Create-CMCollectionEnviorment.csv` file. Some collections depend on additional hardware classes to be enabled in the Client Settings. 
+This script is designed to create device collections and organize them into structured folders. It will create a collection, inject a query if needed, and move the collection to the appropriate folder. Collections are built based on criteria specified in the `Create-CMCollectionEnvironment.csv` file.
 
-### Parameters
+### Installation Guide
 
-- **SiteCode**
-  - ConfigMan Site Code
-- **ProviderMachineName**
-  - ConfigMan Site Server FQDN
+1. Download the necessary scripts and files:
+   - [Create-CMCollectionEnviorment.csv](link-to-zip-file)
+   - [Create-CMCollectionEnviorment.ps1](link-to-zip-file)
 
-### Examples
-
+3. Run the script with the appropriate parameters:
+   - Ensure you have the necessary permissions (Full Administrator role in SCCM).
+   - Navigate to the directory where you downloaded the files.
+   
 ```powershell
-    .EXAMPLE
-        Create-CMCollectionEnviorment.ps1 -SiteCode "ABC" -ProviderMachineName "HOSTNAME.domain"
+.\CCM_LocalAdminGroupSetup.ps1 -SiteCode <YourSiteCode> -ProviderMachineName <YourProviderMachineName>
 ```
 
+### Notes
+- Ensure that `Create-CMCollectionEnviorment.csv` is in the same root directory as the script.
+- If in a CAS environment, run this script at the CAS level.
+- An update to membership collection may be required after creation.
+- A reload to the console will be necessary for new device collection folders to be viewed.
+- Additional Hardware Inventory classes are required in the default settings.
+    - Installed Software - Asset Intelligence (SMS_InstalledSoftware) 
+    - Software Licensing Product - Asset Intelligence (SoftwareLicensingProduct)
+    - Client Diagnostics (CCM_ClientDiagnostics)
+
+## Create CCM_LocalAdminGroupDetails WMI Class <a name = "create-ccm_localAmdinGroupDetails-wmi-class"></a>
+[CCM_LocalAdminGroup](some_link_to_top)
+
+This script is designed to create a new WMI class, `CCM_LocalAdminGroupDetails`. The `CCM_LocalAdminGroup.ps1` script is executed as a compliance item. The `CCM_LocalAdminGroupSetup.ps1` script imports both `CCM_LocalAdminGroupDetails.cab` and `CCM_LocalAdminGroup.mof` into the compliance baseline section and the default client setting's hardware inventory classes, respectively.
+
+By default, the compliance baseline deploys to `All Desktop and Server Clients`. You can change the deployment to a desired collection by using the `-CMDeviceCollectionName` parameter when running `CCM_LocalAdminGroupSetup.ps1`.
+
+This script inventories details of the local administrator group on the targeted collections. The following properties are inventoried:
+
+- Account Name
+- Domain
+- Object Class (User or Group)
+- Password Last Set Date
+- Principal Source (Active Directory or Local)
+- Account Enabled
+- SID
+
+The instance of the class can then be queried using the Resource Explorer. Collection queries can be created based on the `CCM_LocalAdminGroupDetails` properties using WQL.
+
+### Installation Guide
+
+1. Download the zip file containing the necessary scripts and files:
+   - [CCM_LocalAdminGroup.zip](link-to-zip-file)
+
+2. Extract the contents of the zip file to a desired location:
+
+```powershell
+Expand-Archive -Path .\CCM_LocalAdminGroup.zip -DestinationPath C:\desired\location
+```
+3. Run the script with the appropriate parameters:
+   - Ensure you have the necessary permissions (Full Administrator role in SCCM).
+   - Navigate to the directory where you extracted the files.
+   
+```powershell
+.\CCM_LocalAdminGroupSetup.ps1 -SiteCode <YourSiteCode> -ProviderMachineName <YourProviderMachineName> -CMDeviceCollectionName <YourCMDeviceCollectionName>
+```
+### Notes
+- Ensure that `CCM_LocalAdminGroup.mof` and `CCM_LocalAdminGroupDetails.cab` are in the same root directory as the script.
+- If in a CAS environment, run this script at the CAS and not the primary site.
+
 # Functions <a name = "functions"></a>
+---
 Various [Functions](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Functions) used for quick ConfigMan tasks.
 
 [Sort-CMDrivers](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Functions/Sort-CMDrivers)

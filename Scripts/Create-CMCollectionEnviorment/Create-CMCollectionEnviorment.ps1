@@ -88,6 +88,7 @@ Write-Host "Administration > Client Settings > Default Client Settings > Propert
 Write-Host "Click Set Classes > Add " -ForegroundColor Green
 Write-Host "Installed Software - Asset Intelligence (SMS_InstalledSoftware)" -ForegroundColor Cyan
 Write-Host "Software Licensing Product - Asset Intelligence (SoftwareLicensingProduct)" -ForegroundColor Cyan
+Write-Host "Client Diagnostics (CCM_ClientDiagnostics)" -ForegroundColor Cyan
 Write-Host "Please make your changes now then come back to continue script" -ForegroundColor Green
 pause
 Write-Host
@@ -181,6 +182,27 @@ class Collection {
         }
         return $return
     }
+
+    # window()
+    ##########
+    [string] window() {
+        [string]$return = $null
+        [string]$pattern = $null
+        [string]$day = $null
+        [PSObject]$MWSchedule = $null
+        try {
+            $pattern = '\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b'
+            if ($this.Name -match $pattern) {
+                $day = $matches[0]
+            }
+            $MWSchedule = New-CMSchedule -DayOfWeek $day -DurationCount 6 -DurationInterval Hours -Start $this.Comment  # comment used to get necessary info "10/12/2013 00:00:00" > reflect in csv
+            New-CMMaintenanceWindow -CollectionName $this.Name -Name $this.Name -Schedule $MWSchedule | Out-Null
+            $return = "Created $($this.Folder) on $($this.Name).."
+        } catch {
+            $return = $PSItem.Exception.Message
+        }
+        return $return
+    }
 }
 
 #############
@@ -230,29 +252,42 @@ Function Add-CMDeviceCollectionFolders {
 
 # Create folder structure
 #########################
+
+# add direct memeber ship desired folders not present in query csv
 Add-CMDeviceCollectionFolders -CMDeviceCollectionFolderArrayList $FolderArray
 
-# Create Collections
-####################
+# Create Query Collections based on CSV Data
+############################################
 $CMDataSet | ForEach-Object -Begin {
-
+    $NoQueryPattern = '\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b'
+    $NoQueryPatternDeployment = 'Operating System Deployment'
 } -Process {
-    Write-Host # Spacing
     $CollectionObject = [Collection]@{Name=$_.Name;Query=$_.Query;Comment=$_.Comment;Limit=$_.Limit;Folder=$_.Folder;SiteCode=$SiteCode}
     $return = $CollectionObject.create()
-    Write-Host $return
-    if ($return -eq "Skipping $($CollectionObject.Name); already exists") {
-
-    } else {
-        $CollectionObject.inject()
-        $CollectionObject.move()  
+    Write-Host # Spacing
+    $return
+    switch ($return) {
+        "Skipping $($CollectionObject.Name); already exists" {
+            # DO NOTHING MORE AS COLLECTION ALREADY EXISTS
+            break
+        }
+        {$_ -match $NoQueryPattern} { # no need to inject maintenance window collections. maint win collec will always have day of week in the name. 
+            $CollectionObject.window()
+            $CollectionObject.move()  
+        }
+        {$_ -match $NoQueryPatternDeployment}{ # only need to move after creation for Operating System Deployment colec
+            $CollectionObject.move()
+        }
+        Default {
+            $CollectionObject.inject()
+            $CollectionObject.move()     
+        }
     }
-    
 } -End {
     Write-Host 
-    Write-Host "Completed all directives... Thank you for using Create-CMCollectionEnviorment. For other helpfull scripts please visit: " -NoNewline -ForegroundColor Green
-    Write-Host 'https://github.com/Sam-3-git/Configuration-Manager-PS' -ForegroundColor Cyan
+    Write-Host "Completed all directives... Thank you for using Create-CMCollectionEnviorment" -ForegroundColor Green
 }
+
 
 # Exit
 ######
