@@ -259,7 +259,7 @@ Add-CMDeviceCollectionFolders -CMDeviceCollectionFolderArrayList $FolderArray
 # Create Query Collections based on CSV Data
 ############################################
 $CMDataSet | ForEach-Object -Begin {
-    $NoQueryPattern = '\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b'
+    $NoQueryPattern = '\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday | Operating System Deployment)\b'
 } -Process {
     $CollectionObject = [Collection]@{Name=$_.Name;Query=$_.Query;Comment=$_.Comment;Limit=$_.Limit;Folder=$_.Folder;SiteCode=$SiteCode}
     $return = $CollectionObject.create()
