@@ -174,7 +174,7 @@ The instance of the class can then be queried using the Resource Explorer. Colle
 ### Installation Guide
 
 1. Download the zip file containing the necessary scripts and files:
-   - [CCM_LocalAdminGroup.zip](https://github.com/f07bc8c3-4a79-42d8-b54d-a7a0895ba803)
+   - [CCM_LocalAdminGroup.zip](blob:https://github.com/f07bc8c3-4a79-42d8-b54d-a7a0895ba803)
 
 2. Extract the contents of the zip file to a desired location:
 
