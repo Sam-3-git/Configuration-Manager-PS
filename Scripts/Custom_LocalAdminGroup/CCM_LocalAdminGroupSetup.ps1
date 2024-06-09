@@ -1,6 +1,6 @@
 ###############################################################################
 # # Author: Sam                                                             # #
-# # Script: Custom_LocalAdminGroupSetup.ps1                                 # #
+# # Script: CCM_LocalAdminGroupSetup.ps1                                 # #
 ###############################################################################
 
 <#
@@ -9,7 +9,7 @@
    
     .DESCRIPTION
         Script used to preform a complete setup and initialization of a the custom hardware class CCM_LocalAdminGroupDetails. This class inventories details surrounding the Local Admin Group of targeted devices.
-        This script relies on Custom_LocalAdminGroup.mof and Custom_LocalAdminGroup.ps1 to reside in the same root directory. It is advised that this script is run by an administrator with the 'Full Administrator' role in SCCM. If in a CAS enviorment, please run this at the CAS and not the primary site.
+        This script relies on CCM_LocalAdminGroup.mof and CCM_LocalAdminGroup.cab to reside in the same root directory. It is advised that this script is run by an administrator with the 'Full Administrator' role in SCCM. If in a CAS enviorment, please run this at the CAS and not the primary site.
         A new class called CCM_LocalAdminGroupDetails will be added to the default client settings. A new Configuration Item will be added named CCM_LocalAdminGroupDetails. A new Configuration Baseline will be added named Create - WMIClass_CCM_LocalAdminGroupDetails. This Configuration Baseline will be deployed
         to All Desktop and Server Clients unless specefied otherwise.
 
@@ -23,8 +23,8 @@
         Target CMDeviceCollection for baseline deployment. Default is All Desktop and Server Clients
 
     .EXAMPLE
-        # Delply to a custom collection
-        Custom_LocalAdminGroupSetup.ps1 -SiteCode ABC -ProviderMachineName host.domain -CMDeviceCollectionName ''
+        # Delply to a CCM collection
+        CCM_LocalAdminGroupSetup.ps1 -SiteCode ABC -ProviderMachineName host.domain -CMDeviceCollectionName 'Operating Systems - Windows 10'
 #>
 
 ##########
@@ -52,7 +52,7 @@ $SiteCode = $SiteCode # Site code
 $ProviderMachineName = $ProviderMachineName # SMS Provider machine name
 
 
-# Customizations
+# CCMizations
 $initParams = @{}
 # $initParams.Add("Verbose", $true) # Uncomment this line to enable verbose logging
 # $initParams.Add("ErrorAction", "Stop") # Uncomment this line to stop the script on any errors
@@ -73,8 +73,8 @@ Set-Location "$($SiteCode):\" @initParams
 ########
 # VARS #
 ########
-$Mof = "$PSScriptRoot\Custom_LocalAdminGroup.mof"
-$CBCab = "$PSScriptRoot\Create WMI Class CCM_LocalAdminGroupDetails.cab"
+$Mof = "$PSScriptRoot\CCM_LocalAdminGroup.mof"
+$CBCab = "$PSScriptRoot\CCM_LocalAdminGroup.cab"
 
 #############
 # Functions #
@@ -96,9 +96,9 @@ Function Write-Log
         $Date2= Get-Date -Format "MM-dd-yyyy"
         $Type=1
          
-        "<![LOG[$Message]LOG]!><time=$([char]34)$Date$($TimeZoneBias.bias)$([char]34) date=$([char]34)$date2$([char]34) component=$([char]34)$Component$([char]34) context=$([char]34)$([char]34) type=$([char]34)$Severity$([char]34) thread=$([char]34)$([char]34) file=$([char]34)$([char]34)>"| Out-File -FilePath "$LogPath\Custom_LocalAdminGroupSetup.log" -Append -NoClobber -Encoding default
+        "<![LOG[$Message]LOG]!><time=$([char]34)$Date$($TimeZoneBias.bias)$([char]34) date=$([char]34)$date2$([char]34) component=$([char]34)$Component$([char]34) context=$([char]34)$([char]34) type=$([char]34)$Severity$([char]34) thread=$([char]34)$([char]34) file=$([char]34)$([char]34)>"| Out-File -FilePath "$LogPath\CCM_LocalAdminGroupSetup.log" -Append -NoClobber -Encoding default
 }
-Write-Log -Message "INFO: $env:USERNAME started script Custom_LocalAdminGroupSetup.ps1" -Severity 1 -Component "START" # Start Log
+Write-Log -Message "INFO: $env:USERNAME started script CCM_LocalAdminGroupSetup.ps1" -Severity 1 -Component "START" # Start Log
 
 # Q) Function Q Exit
 ####################
@@ -117,7 +117,7 @@ Cls
 Write-Host "SITE:   $SiteCode" -ForegroundColor DarkGray
 Write-Host "SERVER: $ProviderMachineName" -ForegroundColor DarkGray
 Write-Host "USER:   $env:USERNAME" -ForegroundColor DarkGray
-Write-Host "LOG:    $($PSScriptRoot)\Custom_LocalAdminGroupSetup.log" -ForegroundColor DarkGray
+Write-Host "LOG:    $($PSScriptRoot)\CCM_LocalAdminGroupSetup.log" -ForegroundColor DarkGray
 Write-Host
 Write-Host
 
