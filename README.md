@@ -9,6 +9,7 @@
 - [SUG Tool Box](#sug-tool-box)
 - [Get Update Source Files](#get-update-source-files)
 - [Create CM Collection Environment](#create-cm-collection-environment)
+- [Create Local Admin Group Inventory](#create-ccm_localadmingroupdetails-wmi-class)
 - [Functions](#functions)
   - Sort-CMDrivers
   - Write-Log
@@ -130,8 +131,8 @@ This script is designed to create device collections and organize them into stru
 ### Installation Guide
 
 1. Download the necessary scripts and files:
-   - [Create-CMCollectionEnviorment.csv](link-to-zip-file)
-   - [Create-CMCollectionEnviorment.ps1](link-to-zip-file)
+   - [Create-CMCollectionEnviorment.csv](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Scripts/Create-CMCollectionEnviorment/Create-CMCollectionEnviorment.csv)
+   - [Create-CMCollectionEnviorment.ps1](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Scripts/Create-CMCollectionEnviorment/Create-CMCollectionEnviorment.ps1)
 
 3. Run the script with the appropriate parameters:
    - Ensure you have the necessary permissions (Full Administrator role in SCCM).
@@ -152,7 +153,7 @@ This script is designed to create device collections and organize them into stru
     - Client Diagnostics (CCM_ClientDiagnostics)
 
 ## Create CCM_LocalAdminGroupDetails WMI Class <a name = "create-ccm_localAmdinGroupDetails-wmi-class"></a>
-[CCM_LocalAdminGroup](some_link_to_top)
+[CCM_LocalAdminGroup](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Scripts/CCM_LocalAdminGroup)
 
 This script is designed to create a new WMI class, `CCM_LocalAdminGroupDetails`. The `CCM_LocalAdminGroup.ps1` script is executed as a compliance item. The `CCM_LocalAdminGroupSetup.ps1` script imports both `CCM_LocalAdminGroupDetails.cab` and `CCM_LocalAdminGroup.mof` into the compliance baseline section and the default client setting's hardware inventory classes, respectively.
 
@@ -173,7 +174,7 @@ The instance of the class can then be queried using the Resource Explorer. Colle
 ### Installation Guide
 
 1. Download the zip file containing the necessary scripts and files:
-   - [CCM_LocalAdminGroup.zip](link-to-zip-file)
+   - [CCM_LocalAdminGroup.zip](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Scripts/CCM_LocalAdminGroup/CCM_LocalAdminGroup.zip)
 
 2. Extract the contents of the zip file to a desired location:
 
