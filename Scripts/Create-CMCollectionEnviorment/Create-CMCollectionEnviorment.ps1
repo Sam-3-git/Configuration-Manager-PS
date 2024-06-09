@@ -259,7 +259,8 @@ Add-CMDeviceCollectionFolders -CMDeviceCollectionFolderArrayList $FolderArray
 # Create Query Collections based on CSV Data
 ############################################
 $CMDataSet | ForEach-Object -Begin {
-    $NoQueryPattern = '\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday | Operating System Deployment)\b'
+    $NoQueryPattern = '\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b'
+    $NoQueryPatterDeployment = '\b(Operating System Deployment)\b'
 } -Process {
     $CollectionObject = [Collection]@{Name=$_.Name;Query=$_.Query;Comment=$_.Comment;Limit=$_.Limit;Folder=$_.Folder;SiteCode=$SiteCode}
     $return = $CollectionObject.create()
@@ -273,6 +274,9 @@ $CMDataSet | ForEach-Object -Begin {
         {$_ -match $NoQueryPattern} { # no need to inject maintenance window collections. maint win collec will always have day of week in the name. 
             $CollectionObject.window()
             $CollectionObject.move()  
+        }
+        {$_ -match $NoQueryPatterDeployment}{ # only need to move after creation for Operating System Deployment colec
+            $CollectionObject.move()
         }
         Default {
             $CollectionObject.inject()
