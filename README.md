@@ -125,7 +125,7 @@ Target updates must be present in Config Man. Not tested with 3rd Party Update P
 ## Create CM Collection Enviorment <a name = "create-cm-collection-environment"></a>
 [Create-CMCollectionEnviorment](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Scripts/Create-CMCollectionEnviorment)
 
-This script is designed to make device collections and sort them into orginized folders. The script will create a collection, inject a query if necessary, and move the collection to an appropriate folder. 
+This script is designed to make device collections and sort them into orginized folders. The script will create a collection, inject a query if necessary, and move the collection to an appropriate folder. Collections are built based on criteria found in `Create-CMCollectionEnviorment.csv`.
 
 ### Installation Guide
 
@@ -151,6 +151,31 @@ This script is designed to make device collections and sort them into orginized 
     - Software Licensing Product - Asset Intelligence (SoftwareLicensingProduct)
     - Client Diagnostics (CCM_ClientDiagnostics)
 
+## Create CCM_LocalAdminGroupDetails WMI Class <a name = "create-ccm_localAmdinGroupDetails-wmi-class"></a>
+[CCM_LocalAdminGroup](some_link_to_top)
+
+This script is designed to create a new wmi class CCM_LocalAdminGroupDetails via compliance items and baselines and injects a new hardware inventory class in the defualt settings of the site server or CAS. The script `CCM_LocalAdminGroup.ps1` is run as a compliance item. The compliance baseline will default to deploy to "All Desktop and Server Clients". Use the parameter `-CMDeviceCollectionName` to change the deployment to a desired collection when running `CCM_LocalAdminGroupSetup.ps1` The script inventories details of the local administrator group on the target collections. `CCM_LocalAdminGroup.mof` is added as a harware class in the default settings. The new class created by the compliance item will be inventoried during a hardware inventory. The instance of the class can then be queried with resource explorer and collections can be created based off `CCM_LocalAdminGroupDetails` properties. 
+
+### Installation Guide
+
+1. Download the zip file containing the necessary scripts and files:
+   - [CCM_LocalAdminGroup.zip](link-to-zip-file)
+
+2. Extract the contents of the zip file to a desired location:
+
+```powershell
+Expand-Archive -Path .\CCM_LocalAdminGroup.zip -DestinationPath C:\desired\location
+```
+3. Run the script with the appropriate parameters:
+   - Ensure you have the necessary permissions (Full Administrator role in SCCM).
+   - Navigate to the directory where you extracted the files.
+   
+```powershell
+.\CCM_LocalAdminGroupSetup.ps1 -SiteCode <YourSiteCode> -ProviderMachineName <YourProviderMachineName> -CMDeviceCollectionName <YourCMDeviceCollectionName>
+```
+## Notes
+- Ensure that `CCM_LocalAdminGroup.mof` and `CCM_LocalAdminGroupDetails.cab` are in the same root directory as the script.
+- If in a CAS environment, run this script at the CAS and not the primary site.
 
 # Functions <a name = "functions"></a>
 Various [Functions](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Functions) used for quick ConfigMan tasks.
