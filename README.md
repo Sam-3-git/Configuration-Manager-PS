@@ -154,9 +154,9 @@ This script is designed to create device collections and organize them into stru
 ## Create CCM_LocalAdminGroupDetails WMI Class <a name = "create-ccm_localAmdinGroupDetails-wmi-class"></a>
 [CCM_LocalAdminGroup](some_link_to_top)
 
-This script is designed to create a new WMI class, CCM_LocalAdminGroupDetails. The CCM_LocalAdminGroup.ps1 script is executed as a compliance item. The CCM_LocalAdminGroupSetup.ps1 script imports both CCM_LocalAdminGroupDetails.cab and CCM_LocalAdminGroup.mof into the compliance baseline section and the default client settings hardware inventory classes, respectively.
+This script is designed to create a new WMI class, `CCM_LocalAdminGroupDetails`. The `CCM_LocalAdminGroup.ps1` script is executed as a compliance item. The `CCM_LocalAdminGroupSetup.ps1` script imports both `CCM_LocalAdminGroupDetails.cab` and `CCM_LocalAdminGroup.mof` into the compliance baseline section and the default client setting's hardware inventory classes, respectively.
 
-By default, the compliance baseline deploys to "All Desktop and Server Clients". You can change the deployment to a desired collection by using the -CMDeviceCollectionName parameter when running CCM_LocalAdminGroupSetup.ps1.
+By default, the compliance baseline deploys to `All Desktop and Server Clients`. You can change the deployment to a desired collection by using the `-CMDeviceCollectionName` parameter when running `CCM_LocalAdminGroupSetup.ps1`.
 
 This script inventories details of the local administrator group on the targeted collections. The following properties are inventoried:
 
@@ -168,7 +168,7 @@ This script inventories details of the local administrator group on the targeted
 - Account Enabled
 - SID
 
-The instance of the class can then be queried using the Resource Explorer. Collection queries can be created based on the CCM_LocalAdminGroupDetails properties using WQL.
+The instance of the class can then be queried using the Resource Explorer. Collection queries can be created based on the `CCM_LocalAdminGroupDetails` properties using WQL.
 
 ### Installation Guide
 
