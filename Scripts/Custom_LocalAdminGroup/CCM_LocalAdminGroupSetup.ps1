@@ -154,7 +154,7 @@ try {
     Write-Host
     Write-Log -Message "INFO: Imported Baseline" -Severity 1 -Component "MAIN"
     Write-Host "Getting Baseline"
-    $Baseline = Get-CMBaseline -Fast -Name 'Create WMI Class CCM_LocalAdminGroupDetails'
+    $Baseline = Get-CMBaseline -Fast -Name 'CCM_LocalAdminGroupDetails'
     Write-Host "Success!" -ForegroundColor Green
     Write-Host
     Write-Log -Message "INFO: Retrieved Baseline" -Severity 1 -Component "MAIN"
