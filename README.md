@@ -152,7 +152,7 @@ This script is designed to create device collections and organize them into stru
     - Software Licensing Product - Asset Intelligence (SoftwareLicensingProduct)
     - Client Diagnostics (CCM_ClientDiagnostics)
 
-## Create CCM_LocalAdminGroupDetails WMI Class <a name = "create-ccm_localAmdinGroupDetails-wmi-class"></a>
+## Create CCM_LocalAdminGroupDetails WMI Class <a name = "create-ccm_localadmingroupdetails-wmi-class"></a>
 [CCM_LocalAdminGroup](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Scripts/CCM_LocalAdminGroup)
 
 This script is designed to create a new WMI class, `CCM_LocalAdminGroupDetails`. The `CCM_LocalAdminGroup.ps1` script is executed as a compliance item. The `CCM_LocalAdminGroupSetup.ps1` script imports both `CCM_LocalAdminGroupDetails.cab` and `CCM_LocalAdminGroup.mof` into the compliance baseline section and the default client setting's hardware inventory classes, respectively.
