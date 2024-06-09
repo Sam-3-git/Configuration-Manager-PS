@@ -1,6 +1,6 @@
 ###############################################################################
 # # Author: Sam                                                             # #
-# # Script: CCM_LocalAdminGroupSetup.ps1                                 # #
+# # Script: CCM_LocalAdminGroupSetup.ps1                                    # #
 ###############################################################################
 
 <#
@@ -9,8 +9,10 @@
    
     .DESCRIPTION
         Script used to preform a complete setup and initialization of a the custom hardware class CCM_LocalAdminGroupDetails. This class inventories details surrounding the Local Admin Group of targeted devices.
-        This script relies on CCM_LocalAdminGroup.mof and CCM_LocalAdminGroup.cab to reside in the same root directory. It is advised that this script is run by an administrator with the 'Full Administrator' role in SCCM. If in a CAS enviorment, please run this at the CAS and not the primary site.
-        A new class called CCM_LocalAdminGroupDetails will be added to the default client settings. A new Configuration Item will be added named CCM_LocalAdminGroupDetails. A new Configuration Baseline will be added named Create - WMIClass_CCM_LocalAdminGroupDetails. This Configuration Baseline will be deployed
+        This script relies on CCM_LocalAdminGroup.mof and CCM_LocalAdminGroupDetails to reside in the same root directory. It is advised that this script is run by an administrator with the 'Full Administrator' 
+        role in SCCM. If in a CAS enviorment, please run this at the CAS and not the primary site.
+        A new class called CCM_LocalAdminGroupDetails will be added to the default client settings. A new Configuration Item will be added named CCM_LocalAdminGroupDetails. 
+        A new Configuration Baseline will be added named CCM_LocalAdminGroupDetails. This Configuration Baseline will be deployed
         to All Desktop and Server Clients unless specefied otherwise.
 
     .PARAMETER SiteCode
@@ -74,7 +76,7 @@ Set-Location "$($SiteCode):\" @initParams
 # VARS #
 ########
 $Mof = "$PSScriptRoot\CCM_LocalAdminGroup.mof"
-$CBCab = "$PSScriptRoot\CCM_LocalAdminGroup.cab"
+$CBCab = "$PSScriptRoot\CCM_LocalAdminGroupDetails.cab"
 
 #############
 # Functions #
