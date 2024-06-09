@@ -131,8 +131,8 @@ This script is designed to create device collections and organize them into stru
 ### Installation Guide
 
 1. Download the necessary scripts and files:
-   - [Create-CMCollectionEnviorment.csv](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Scripts/Create-CMCollectionEnviorment/Create-CMCollectionEnviorment.csv)
-   - [Create-CMCollectionEnviorment.ps1](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Scripts/Create-CMCollectionEnviorment/Create-CMCollectionEnviorment.ps1)
+   - [Create-CMCollectionEnviorment.csv](blob:https://github.com/63f74907-0cc2-4032-ac37-e06fae376b3d)
+   - [Create-CMCollectionEnviorment.ps1](blob:https://github.com/0afb9f6e-e90a-459f-9198-d04b8975179c)
 
 3. Run the script with the appropriate parameters:
    - Ensure you have the necessary permissions (Full Administrator role in SCCM).
@@ -174,7 +174,7 @@ The instance of the class can then be queried using the Resource Explorer. Colle
 ### Installation Guide
 
 1. Download the zip file containing the necessary scripts and files:
-   - [CCM_LocalAdminGroup.zip](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Scripts/CCM_LocalAdminGroup/CCM_LocalAdminGroup.zip)
+   - [CCM_LocalAdminGroup.zip](blob:https://github.com/f07bc8c3-4a79-42d8-b54d-a7a0895ba803)
 
 2. Extract the contents of the zip file to a desired location:
 
