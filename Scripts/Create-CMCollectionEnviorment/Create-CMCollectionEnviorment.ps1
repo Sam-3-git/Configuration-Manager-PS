@@ -260,7 +260,7 @@ Add-CMDeviceCollectionFolders -CMDeviceCollectionFolderArrayList $FolderArray
 ############################################
 $CMDataSet | ForEach-Object -Begin {
     $NoQueryPattern = '\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b'
-    $NoQueryPatterDeployment = '\b(Operating System Deployment)\b'
+    $NoQueryPatternDeployment = '\b(Operating System Deployment)\b'
 } -Process {
     $CollectionObject = [Collection]@{Name=$_.Name;Query=$_.Query;Comment=$_.Comment;Limit=$_.Limit;Folder=$_.Folder;SiteCode=$SiteCode}
     $return = $CollectionObject.create()
@@ -275,7 +275,7 @@ $CMDataSet | ForEach-Object -Begin {
             $CollectionObject.window()
             $CollectionObject.move()  
         }
-        {$_ -match $NoQueryPatterDeployment}{ # only need to move after creation for Operating System Deployment colec
+        {$_ -match $NoQueryPatternDeployment}{ # only need to move after creation for Operating System Deployment colec
             $CollectionObject.move()
         }
         Default {
