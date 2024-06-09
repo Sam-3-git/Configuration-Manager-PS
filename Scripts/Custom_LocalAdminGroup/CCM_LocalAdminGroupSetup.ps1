@@ -187,7 +187,7 @@ try {
         MofBuffer = [string]($MofContent -join "`r`n")
     }
     Invoke-CMWmiMethod -ClassName 'SMS_InventoryReport' -MethodName 'ImportInventoryReport' -Parameter $WMIArguments | Out-Null    
-    Write-Log -Message "INFO: Imported MOF to default Client Settings"
+    Write-Log -Message "INFO: Imported MOF to default Client Settings" -Severity 1 -Component "MAIN"
 }
 catch {
     $PSSITem
