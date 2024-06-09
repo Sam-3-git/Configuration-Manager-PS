@@ -15,7 +15,7 @@
   - ConvertTo-CMBoundryIPSubnet
 
 # Scripts
-
+---
 ## SUG Tool Box <a name="sug-tool-box"></a>
 [SUG-Toolbox.ps1](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Scripts/SUG-Toolbox.ps1)
 
@@ -192,6 +192,7 @@ Expand-Archive -Path .\CCM_LocalAdminGroup.zip -DestinationPath C:\desired\locat
 - If in a CAS environment, run this script at the CAS and not the primary site.
 
 # Functions <a name = "functions"></a>
+---
 Various [Functions](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Functions) used for quick ConfigMan tasks.
 
 [Sort-CMDrivers](https://github.com/Sam-3-git/Configuration-Manager-PS/blob/main/Functions/Sort-CMDrivers)
