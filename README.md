@@ -125,7 +125,7 @@ Target updates must be present in Config Man. Not tested with 3rd Party Update P
 ## Create CM Collection Enviorment <a name = "create-cm-collection-environment"></a>
 [Create-CMCollectionEnviorment](https://github.com/Sam-3-git/Configuration-Manager-PS/tree/main/Scripts/Create-CMCollectionEnviorment)
 
-This script is designed to make device collections and sort them into orginized folders. The script will create a collection, inject a query if necessary, and move the collection to an appropriate folder. Collections are built based on criteria found in `Create-CMCollectionEnviorment.csv`.
+This script is designed to create device collections and organize them into structured folders. It will create a collection, inject a query if needed, and move the collection to the appropriate folder. Collections are built based on criteria specified in the Create-CMCollectionEnvironment.csv file.
 
 ### Installation Guide
 
@@ -154,7 +154,13 @@ This script is designed to make device collections and sort them into orginized 
 ## Create CCM_LocalAdminGroupDetails WMI Class <a name = "create-ccm_localAmdinGroupDetails-wmi-class"></a>
 [CCM_LocalAdminGroup](some_link_to_top)
 
-This script is designed to create a new wmi class CCM_LocalAdminGroupDetails via compliance items and baselines. The script also injects a new hardware inventory class in the defualt settings of the site server or CAS. The script `CCM_LocalAdminGroup.ps1` is run as a compliance item. The compliance baseline will default to deploy to "All Desktop and Server Clients". Use the parameter `-CMDeviceCollectionName` to change the deployment to a desired collection when running `CCM_LocalAdminGroupSetup.ps1` The script inventories details of the local administrator group on the target collections. `CCM_LocalAdminGroup.mof` is added as a harware class in the default settings. The new class created by the compliance item will be inventoried during a hardware inventory. The instance of the class can then be queried with resource explorer and collections can be created based off `CCM_LocalAdminGroupDetails` properties. 
+This script is designed to create a new WMI class, CCM_LocalAdminGroupDetails, using compliance items and baselines. It also injects a new hardware inventory class into the default settings of the site server or CAS. The CCM_LocalAdminGroup.ps1 script is executed as a compliance item.
+
+By default, the compliance baseline deploys to "All Desktop and Server Clients". You can change the deployment to a desired collection by using the -CMDeviceCollectionName parameter when running CCM_LocalAdminGroupSetup.ps1.
+
+This script inventories details of the local administrator group on the targeted collections. The CCM_LocalAdminGroup.mof file is added as a hardware class in the default settings. The new class created by the compliance item will be included in the hardware inventory.
+
+The instance of the class can then be queried using the Resource Explorer. Collection queries can be created based on the CCM_LocalAdminGroupDetails properties using WQL.
 
 ### Installation Guide
 
