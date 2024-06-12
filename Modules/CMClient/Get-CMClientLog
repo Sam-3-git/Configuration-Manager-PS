@@ -1,265 +1,132 @@
 Function Get-CMClientLog {
-
     <#
-
         .SYNOPSIS
-
         Parses Configuration Manager Logs to provide an output similar to CMtrace, but in  powershell.
 
- 
-
         .DESCRIPTION
-
         This Cmdlet is designed to parse the raw data of Configuration Manager Logs and provide a similar experience to CMTrace in the shell.
-
         REGEX is applied to the raw data found in the log. REGEX Matches are then split into groupings that represent the diffrent fields in CMTrace.
-
         The REGEX groupings are then assigned to various properties and assigned to an output object. New lines are removed from the message text.
-
         The cmdlet is designed to parse only Configuration Manger Logs or logs written in the same raw data style.
 
-       
-
         .PARAMETER LogPath
-
         Path to Target Configuration Manager Logs. More than one log path can be passed at a time.
 
- 
-
         .PARAMETER Filter
-
         Filters based on the type of message in the log; "Success","Info","Warning","Error".
 
- 
-
         .EXAMPLE
-
         Get-CMClientLog -LogPath "C:\Windows\CCM\Logs\PolicyAgent.log"
 
- 
-
         .EXAMPLE
-
         Get-CMClientLog -LogPath "C:\Windows\CCM\Logs\PolicyAgent.log","C:\Windows\CCM\Logs\ClientIDManagerStartup.log"
 
- 
-
         .EXAMPLE
-
         Get-CMClientLog -LogPath "C:\Windows\CCM\Logs\AppEnforce.log" -Filter Error
-
-       
-
     #>
-
     [CmdletBinding()]
-
     PARAM(
-
         [Parameter(Mandatory = $true,ValueFromPipeline = $True)]
-
         [ValidateNotNullOrEmpty()]
-
         [string[]]$LogPath,
 
- 
-
         [Parameter()]
-
         [ValidateSet("Success","Info","Warning","Error")]
-
         [string]$Filter
-
     )
 
     BEGIN {
-
         Write-Verbose "BEGIN BLOCK BEGIN"
-
         # want to check extension and ensure that .log is passed. may work on other files if emulating cmtrace logging. warn user.
-
         $LogPath | ForEach-Object -Process {
-
             $logext = [IO.Path]::GetExtension($LogPath)
-
             if ($logext -eq ".log") {
-
                 Write-Verbose "INFO: $_ valid .log extension"
-
             } else {
-
                 Write-Warning "WARNING: $logext is not valid .log extension"
-
             }
-
         }
-
         <################
-
         # REGEX Pattern #
-
         #################
-
         Group 2 = Message
-
         Group 5 = Time
-
         Group 7 = Date
-
         Group 9 = Component
-
         Group 11 = Type
-
         Group 13 = Thread
-
         #################>
-
         $Pattern = '(?s)<!(\[LOG\[.*?)(.*?)(\]LOG\])(.*?time=")(\d\d\D\d\d\D\d\d\D\d\d\d)(.*?date=")(\d\d\D\d\d\D\d\d\d\d)(".component=")(.*?)(\".context="".type=")(\d)(".thread=")(.*?)(")(.*?)[^!]>'
-
         Write-Verbose "Regex Message pattern = $Pattern"
-
         Write-Verbose "INFO: setting process vars to null"
-
         Write-Verbose "BEGIN BLOCK END"
-
         }
-
     PROCESS {
-
         Write-Verbose "PROCESS BLOCK BEGIN"
-
         Write-Verbose "INFO: passed logs $LogPath"
-
         $LogPath | ForEach-Object -Process {
-
             Write-Verbose "INFO: Getting content at $_"
-
             $LogContent = Get-Content -Path $_ -Raw
-
             Write-Verbose "INFO: Parsing content at $_"
-
             $RegexMatches = [regex]::Matches($LogContent, $Pattern)
-
             Write-Verbose "REGEXMATCH COUNT = $($RegexMatches.Count)"
-
             $RegexMatches | ForEach-Object {
-
                 $DateTime = "$($_.Groups[7].Value) $($_.Groups[5].Value)"
-
                 $Message = $_.Groups[2].Value
-
                 $Message = $Message -replace '\r?\n', ' '
-
                 $Type = $_.Groups[11].Value
-
                 $Component = $_.Groups[9].Value
-
                 $Thread = $_.Groups[13].Value
-
                 # translate type to error value
-
                 switch ($Type) {
-
                 '1' {$Type = 'Info'}
-
                 '0' {$Type = 'Success'}
-
                 '2' {$Type = 'Warning'}
-
                 '3' {$Type = 'Error'}
-
                 default {$Type = 'Unknown'}
-
                 }
-
                 # Create output object for match item
-
                 $OutputObject = New-Object -TypeName psobject -Property @{
-
                     'Date\Time' = $DateTime
-
                     'Message' = $Message
-
                     'Type' = $Type
-
                     'Component' = $Component
-
                     'Thread' = $Thread
-
                 }
-
                 Write-Verbose "INFO: Writing Output"
-
                 Write-Verbose "INFO: Filter set to: $Filter"
-
                 switch ($Filter) {
-
                 'Info' {
-
                     if ($Type -eq 'Info') {
-
                         Write-Verbose "INFO: Writing Info Output"
-
                         Write-Output $OutputObject
-
                     }
-
                 }
-
                 'Success' {
-
                     if ($Type -eq 'Success') {
-
                         Write-Verbose "INFO: Writing Success Output"
-
                         Write-Output $OutputObject
-
                     }
-
                 }
-
                 'Warning' {
-
                     if ($Type -eq 'Warning') {
-
                         Write-Verbose "INFO: Writing Warning Output"
-
                         Write-Output $OutputObject
-
                     }
-
                 }
-
                 'Error' {
-
                     if ($Type -eq 'Error') {
-
                         Write-Verbose "INFO: Writing Error Output"
-
                         Write-Output $OutputObject
-
                     }
-
                 }
-
                 default {
-
                         Write-Verbose "INFO: Writing Output"
-
                         Write-Output $OutputObject
-
                         }
-
-                }
-
-               
-
+                }               
             }              
-
         }
-
         Write-Verbose "PROCESS BLOCK END"
-
         }
-
 } 
