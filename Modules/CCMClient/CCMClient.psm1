@@ -7,7 +7,9 @@ Function Get-CCMLog {
         This Cmdlet is designed to parse the raw data of Configuration Manager Logs and provide a similar experience to CMTrace in the shell.
         REGEX is applied to the raw data found in the log. REGEX Matches are then split into groupings that represent the diffrent fields in CMTrace.
         The REGEX groupings are then assigned to various properties and assigned to an output object. New lines are removed from the message text.
-        The cmdlet is designed to parse only Configuration Manger Logs or logs written in the same raw data style.
+        The cmdlet is designed to parse only Configuration Manger Logs or logs written in the same raw data style. Best effort is given to other log
+        formats. REGEX is used to look for key words: "Success","Info","Warning","Error". Type is assigned to the output so that -Filter is still
+        effective.
        
         .PARAMETER Path
         Path to Target Configuration Manager Logs. More than one log path can be passed at a time.
@@ -86,7 +88,7 @@ Function Get-CCMLog {
         }
     PROCESS {
         Write-Verbose "INFO: passed logs $Path"
-        if ($ComputerName -and $Credential) {
+        if ($Credential) {
             Write-Verbose "INFO: $ComputerName"
             $LogContent = Invoke-Command -ComputerName "$ComputerName" -Credential $Credential -ScriptBlock {Get-Content -Path $Using:Path -Raw}
         } else {      
@@ -125,6 +127,45 @@ Function Get-CCMLog {
                 'Error' {if ($Type -eq 'Error') {Write-Output $OutputObject}}
                 default {Write-Output $OutputObject}
             }
+        }
+        if ($RegexMatches -eq $null) { # best effort on still matching with filters for given input when not matching regex
+            Write-Verbose "WARNING: No REGEX matches, giving best effort"
+            $SuccessFilter = '\b(Success)\b'
+            $WarningFilter = '\b(Warning)\b'
+            $ErrorFilter = '\b(Error)\b'
+            Foreach ($line in $LogContent) {
+                # set type of log based on log matching regex on line
+                switch ($line) {
+                    'Success' {if ($line -match $SuccessFilter) {$Type = 0}}
+                    'Warning' {if ($line -match $WarningFilter) {$Type = 2}}
+                    'Error' {if ($line -match $ErrorFilter) {$Type = 3}}
+                    default {$Type = 1} # set default to 1 if no matches are found
+                }
+                 # set type for output object.
+                 switch ($Type) {
+                    '1' {$Type = 'Info'}
+                    '0' {$Type = 'Success'}
+                    '2' {$Type = 'Warning'}
+                    '3' {$Type = 'Error'}
+                    default {$Type = 'Unknown'}
+                }
+                # create output object with only line and type
+                $OutputObject = New-Object -TypeName psobject -Property @{
+                    'Date\Time' = $DateTime
+                    'Message' = $line
+                    'Type' = $Type
+                    'Component' = $Component
+                    'Thread' = $Thread
+                }
+                # write output based on filter
+                switch ($Filter) {
+                    'Info' {if ($Type -eq 'Info') {Write-Output $OutputObject}}
+                    'Success' {if ($Type -eq 'Success') {Write-Output $OutputObject}}
+                    'Warning' {if ($Type -eq 'Warning') {Write-Output $OutputObject}}
+                    'Error' {if ($Type -eq 'Error') {Write-Output $OutputObject}}
+                    default {Write-Output $OutputObject}
+                }
+            }  
         }          
     }
 }
@@ -379,41 +420,63 @@ Function Show-CCMUpdates {
     }
 } 
 
-Function Write-Log {
+Function Write-CCMLog {
     <#
+    .SYNOPSIS
+    Function to write logs that can be parsed with CmTrace.exe and Get-CCMLog.
+
     .DESCRIPTION
-    Function to write logs that work will with CmTrace.exe. 
+    This function strives to mimic the logging experience of Configuration Manager. The output from Write-CCMLog is in the same format as the logs produced by Configuration Manager. This allows 
+    cmtrace.exe to easily parse and understand the information in the log. Other functions in this module, such as Get-CCMLog also use regex to parse against the same log formats. 
 
     .PARAMETER Message
-    passed string to write to log as the primary information
+    Passed string to write to log.
 
     .PARAMETER Severity
-    passed int to change line color when viewed within cmtrace.exe. 1=info or no color; 2=warning or yellow; 3=red or error
+    Passed severity level to highlight when viewing with CMtrace or to categorize with Get-CCMLog. Valid values are "Success","Info","Warning","Error". The default value is Info.
 
     .PARAMETER Component
-    passed string to fill the Component column when viewed with cmtrace.exe
+    Passed string to fill the Component column. The default value is MyInvocation.MyCommand.Name
+
+    .PARAMETER LogPath
+    Passed string to decide log output. The default is "$ENV:Temp\CCMClient.log".
 
     .EXAMPLE
-    Write-Log -Message "Info: This is the start of the log" -Severity 1 -Component "BEGIN"
+    Write-CCMLog -Message "Info: This is the start of the log"
 
     .EXAMPLE
-    Write-Log -Message "Warning: This is a warning in the middle of the log" -Severity 2 -Component "PROCESS"
+    Write-CCMLog -Message "Warning: This is a warning in the middle of the log" -Severity Warning -Component "PROCESS"
 
     .EXAMPLE
-    Write-Log -Message "Error: This is a terminiating error for some process... $SomeProcessPassedExitCode" -Severity 3 -Component "END"
+    Write-CCMLog -Message "Error: This is a terminiating error for some process that needs to be logged in C:\... $SomeProcessPassedExitCode" -Severity Error -Component "END" -LogPath C:\MyErrors.Log
     #>
- 
+    [CmdletBinding()]
     PARAM(
+        [Parameter()]
         [String]$Message,
-        [int]$Severity,
-        [string]$Component,
-        [string]$LogPath="$ENV:Temp\CCMClient.log"#
+
+        [Parameter()]
+        [ValidateSet("Success","Info","Warning","Error")]
+        [String]$Severity='Info',
+
+        [Parameter()]
+        [string]$Component=$MyInvocation.MyCommand.Name,
+
+        [Parameter()]
+        [string]$LogPath="$ENV:Temp\CCMClient.log"
     )
+    switch ($Severity) {
+        'Info' {[int]$Type = 1}
+        'Success' {[int]$Type = 0}
+        'Warning' {[int]$Type = 2}
+        'Error' {[int]$Type = 3}
+        default {[int]$Type = 1}
+    }
         $DecThread = [System.Threading.Thread]::CurrentThread.ManagedThreadId
         $HexThread = '{0:x}' -f $DecThread
         $Thread = "$DecThread (0x$HexThread)"
         $TimeZoneBias = Get-WMIObject -Query "Select Bias from Win32_TimeZone"
         $Date= Get-Date -Format "HH:mm:ss.fff"
         $Date2= Get-Date -Format "MM-dd-yyyy"   
-        "<![LOG[$Message]LOG]!><time=$([char]34)$Date$($TimeZoneBias.bias)$([char]34) date=$([char]34)$date2$([char]34) component=$([char]34)$Component$([char]34) context=$([char]34)$([char]34) type=$([char]34)$Severity$([char]34) thread=$([char]34)$Thread$([char]34) file=$([char]34)$([char]34)>"| Out-File -FilePath $LogPath -Append -NoClobber -Encoding default
+        "<![LOG[$Message]LOG]!><time=$([char]34)$Date$($TimeZoneBias.bias)$([char]34) date=$([char]34)$date2$([char]34) component=$([char]34)$Component$([char]34) context=$([char]34)$([char]34) type=$([char]34)$Type$([char]34) thread=$([char]34)$Thread$([char]34) file=$([char]34)$([char]34)>"| Out-File -FilePath $LogPath -Append -NoClobber -Encoding default
 }
