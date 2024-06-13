@@ -378,3 +378,42 @@ Function Show-CCMUpdates {
         }
     }
 } 
+
+Function Write-Log {
+    <#
+    .DESCRIPTION
+    Function to write logs that work will with CmTrace.exe. 
+
+    .PARAMETER Message
+    passed string to write to log as the primary information
+
+    .PARAMETER Severity
+    passed int to change line color when viewed within cmtrace.exe. 1=info or no color; 2=warning or yellow; 3=red or error
+
+    .PARAMETER Component
+    passed string to fill the Component column when viewed with cmtrace.exe
+
+    .EXAMPLE
+    Write-Log -Message "Info: This is the start of the log" -Severity 1 -Component "BEGIN"
+
+    .EXAMPLE
+    Write-Log -Message "Warning: This is a warning in the middle of the log" -Severity 2 -Component "PROCESS"
+
+    .EXAMPLE
+    Write-Log -Message "Error: This is a terminiating error for some process... $SomeProcessPassedExitCode" -Severity 3 -Component "END"
+    #>
+ 
+    PARAM(
+        [String]$Message,
+        [int]$Severity,
+        [string]$Component,
+        [string]$LogPath="$ENV:Temp\CCMClient.log"
+    )
+        $DecThread = [System.Threading.Thread]::CurrentThread.ManagedThreadId
+        $HexThread = '{0:x}' -f $DecThread
+        $Thread = "$DecThread (0x$HexThread)"
+        $TimeZoneBias = Get-WMIObject -Query "Select Bias from Win32_TimeZone"
+        $Date= Get-Date -Format "HH:mm:ss.fff"
+        $Date2= Get-Date -Format "MM-dd-yyyy"   
+        "<![LOG[$Message]LOG]!><time=$([char]34)$Date$($TimeZoneBias.bias)$([char]34) date=$([char]34)$date2$([char]34) component=$([char]34)$Component$([char]34) context=$([char]34)$([char]34) type=$([char]34)$Severity$([char]34) thread=$([char]34)$Thread$([char]34) file=$([char]34)$([char]34)>"| Out-File -FilePath $LogPath -Append -NoClobber -Encoding default
+}
