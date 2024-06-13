@@ -86,7 +86,7 @@ Function Get-CCMLog {
         }
     PROCESS {
         Write-Verbose "INFO: passed logs $Path"
-        if ($ComputerName) {
+        if ($ComputerName -and $Credential) {
             Write-Verbose "INFO: $ComputerName"
             $LogContent = Invoke-Command -ComputerName "$ComputerName" -Credential $Credential -ScriptBlock {Get-Content -Path $Using:Path -Raw}
         } else {      
