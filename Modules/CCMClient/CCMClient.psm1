@@ -246,7 +246,7 @@ Function Invoke-CCMClientAction {
         'State system policy bulk send high'='{00000000-0000-0000-0000-000000000115}'
         'State system policy bulk send low'='{00000000-0000-0000-0000-000000000116}'
         'Application manager policy action'='{00000000-0000-0000-0000-000000000121}'
-        'Application Evaluation'='{00000000-0000-0000-0000-000000000121}' # Made a similar triger to 'Application manager policy action' for easy validation
+        'Application Evaluation'='{00000000-0000-0000-0000-000000000121}' # Made a similar triger to 'Application manager policy action' for ease of use
         'Application manager user policy action'='{00000000-0000-0000-0000-000000000122}'
         'Application manager global evaluation action'='{00000000-0000-0000-0000-000000000123}'
         'Power management start summarizer'='{00000000-0000-0000-0000-000000000131}'
@@ -322,7 +322,7 @@ Function Show-CCMUpdates {
         Specifies a user account that has permission to perform this action.
 
         .PARAMETER Filter
-
+        Species a key phrase to match against the title of updates
 
         .EXAMPLE
         Show-CMUpdates -ComputerName domain\remotehost -Credential domain\admin01
