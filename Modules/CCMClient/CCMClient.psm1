@@ -53,7 +53,7 @@ Function Get-CCMLog {
         [Parameter(ValueFromPipeline = $True)]
         [ValidateNotNullOrEmpty()]
         [Alias('hostname','PSComputerName')]
-        [string]$ComputerName="$ENV:COMPUTERNAME"
+        [string]$ComputerName="$ENV:COMPUTERNAME",
  
         [Parameter()]
         [ValidateNotNull()]
