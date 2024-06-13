@@ -407,7 +407,7 @@ Function Write-Log {
         [String]$Message,
         [int]$Severity,
         [string]$Component,
-        [string]$LogPath="$ENV:Temp\CCMClient.log"
+        [string]$LogPath="$ENV:Temp\CCMClient.log"#
     )
         $DecThread = [System.Threading.Thread]::CurrentThread.ManagedThreadId
         $HexThread = '{0:x}' -f $DecThread
