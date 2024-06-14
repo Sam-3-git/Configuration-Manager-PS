@@ -4,12 +4,12 @@ Function Get-CCMLog {
         Parses Configuration Manager Logs to provide an output similar to CMtrace, but in  powershell.
  
         .DESCRIPTION
-        This Cmdlet is designed to parse the raw data of Configuration Manager Logs and provide a similar experience to CMTrace in the shell.
+        This function is designed to parse the raw data of Configuration Manager Logs and provide a similar experience to CMTrace in the shell.
         REGEX is applied to the raw data found in the log. REGEX Matches are then split into groupings that represent the diffrent fields in CMTrace.
         The REGEX groupings are then assigned to various properties and assigned to an output object. New lines are removed from the message text.
         The cmdlet is designed to parse only Configuration Manger Logs or logs written in the same raw data style. Best effort is given to other log
         formats. REGEX is used to look for key words: "Success","Info","Warning","Error". Type is assigned to the output so that -Filter is still
-        effective.
+        effective and the output consistant.
        
         .PARAMETER Path
         Path to Target Configuration Manager Logs. More than one log path can be passed at a time.
@@ -18,11 +18,14 @@ Function Get-CCMLog {
         Filters based on the type of message in the log; "Success","Info","Warning","Error".
         
         .PARAMETER ComputerName
-        Specifies a computer name. Only One computer name at a time can be passed. Pipeline values are also allowed.
-        Type the NetBIOS name, the IP address, or the fully qualified domain name of the computer. You can also pipe computer names to Get-CCMLog.
+        Specifies a computer name. Only One computer name at a time can be passed.
+        Type the NetBIOS name, the IP address, or the fully qualified domain name of the computer.
  
         .PARAMETER Credential
         Specifies a user account that has permission to perform this action.
+
+        .PARAMETER InputObject
+        Accepts strings to then process through REGEX and format in the desired output.
  
         .EXAMPLE
         Get-CCMLog -LogPath "C:\Windows\CCM\Logs\PolicyAgent.log"
@@ -35,6 +38,13 @@ Function Get-CCMLog {
  
         .EXAMPLE
         Get-CCMLog -Path "C:\Windows\CCM\Logs\PolicyAgent.log" -ComputerName host.domain -Credential domain\admin01
+
+        .EXAMPLE
+        $InputObject = Get-Content -Path "C:\Windows\Logs\CBS\CBS.log"
+        Get-CCMLog -InputObject $InputObject
+
+        .EXAMPLE
+        Get-Content -Path "C:\Windows\CCM\Logs\PolicyAgent.log" -Wait | Get-CCMLog
  
         .INPUTS
         System.String
@@ -44,7 +54,7 @@ Function Get-CCMLog {
     #>
     [CmdletBinding()]
     PARAM(
-        [Parameter(Mandatory = $true,ValueFromPipeline = $True)]
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string[]]$Path,
  
@@ -52,14 +62,17 @@ Function Get-CCMLog {
         [ValidateSet("Success","Info","Warning","Error")]
         [string]$Filter,
  
-        [Parameter(ValueFromPipeline = $True)]
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [Alias('hostname','PSComputerName')]
         [string]$ComputerName="$ENV:COMPUTERNAME",
  
         [Parameter()]
         [ValidateNotNull()]
-        [System.Management.Automation.Credential()]$Credential
+        [System.Management.Automation.Credential()]$Credential,
+
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string[]]$InputObject
     )
     BEGIN {
         # want to check extension and ensure that .log is passed. may work on other files if emulating cmtrace logging. warn user.
@@ -67,8 +80,12 @@ Function Get-CCMLog {
             $logext = [IO.Path]::GetExtension($Path)
             if ($logext -eq ".log") {
  
-            } else {
-                Write-Warning "WARNING: $logext is not valid .log extension"
+            }
+            elseif ($InputObject) {
+                # Do nothing as an input object means we are accepting values from pipeline
+            }
+            else {
+                Write-Warning " $logext is not valid .log extension"
             }
         }
         <################
@@ -91,7 +108,12 @@ Function Get-CCMLog {
         if ($Credential) {
             Write-Verbose "INFO: $ComputerName"
             $LogContent = Invoke-Command -ComputerName "$ComputerName" -Credential $Credential -ScriptBlock {Get-Content -Path $Using:Path}
-        } else {      
+        } 
+        # If there is an inputobject then we need the var logcontent to == inputobject
+        elseif ($InputObject) {
+            $LogContent = $InputObject
+        }
+        else {      
             $LogContent = Get-Content -Path $Path
         }
         $RegexMatches = [regex]::Matches($LogContent, $Pattern)
@@ -177,12 +199,11 @@ Function Invoke-CCMClientAction {
         Invokes CCM Clients to run a desired action
  
         .DESCRIPTION
-        This Cmdlet is designed to invoke WMI trigger actions on a local or remote system. This is similar to the Configuration Manager Applet found in Control Panel.
-        Elevated permissions may be needed to access the namespace for the local or target system. This cmdlet creates a wrapper for
+        This function is designed to invoke WMI trigger actions on a local or remote system. This is similar to the Configuration Manager Applet found in Control Panel.
+        Elevated permissions may be needed to access the namespace for the local or target system. This function creates a wrapper for
         Invoke-WMIMethod against the namespace root\ccm, class SMS_Client, method TriggerSchedule. The Action Parameter has a validated set
         for all CCM triggers that can be called. Please note that some triggers are no longer used.
  
-       
         .PARAMETER Action
         Specefies the Action that will trigger on the system. Actions are mapped to schedule triggers.
  
@@ -352,9 +373,10 @@ Function Show-CCMUpdates {
         Shows any known updates on target CCM Client
 
         .DESCRIPTION
-        This Cmdlet is designed to check WMI to see if there are any updates known to the client. It returns the wmi object to pass to other cmdlets in the CCMClient Module.
-        An example of a known update would be an update that is visible in Software Center. This function is a wrapper for: Get-WmiObject -Namespace root\ccm\clientsdk -Class CCM_SoftwareUpdate/
-        If no updates are found the output will be a psobject with the computer name and the propery updates set to $false
+        This function is designed to check WMI to see if there are any updates known to the client. It returns the wmi object to pass to other functions if desired.
+        An example of a known update would be an update that is visible in Software Center. This function is a wrapper for: Get-WmiObject -Namespace root\ccm\clientsdk -Class CCM_SoftwareUpdate.
+        If no updates are found the output will be a psobject with the computer name and the propery updates set to $false. This cmdlet is designed to show available updates and not scan against
+        SUPs to get new updates.
 
         .PARAMETER ComputerName
         Specifies a computer name. More than one computer name is allowed to be passed. Pipeline values are also allowed.
@@ -433,7 +455,7 @@ Function Write-CCMLog {
     cmtrace.exe to easily parse and understand the information in the log. Other functions in this module, such as Get-CCMLog also use regex to parse against the same log formats. 
 
     .PARAMETER Message
-    Passed string to write to log.
+    Passed string to write to log. Accepts string input for piping messages.
 
     .PARAMETER Severity
     Passed severity level to highlight when viewing with CMtrace or to categorize with Get-CCMLog. Valid values are "Success","Info","Warning","Error". The default value is Info.
@@ -455,7 +477,7 @@ Function Write-CCMLog {
     #>
     [CmdletBinding()]
     PARAM(
-        [Parameter()]
+        [Parameter(Mandatory = $true,ValueFromPipeline = $True)]
         [String]$Message,
 
         [Parameter()]
@@ -483,4 +505,3 @@ Function Write-CCMLog {
         $Date2= Get-Date -Format "MM-dd-yyyy"   
         "<![LOG[$Message]LOG]!><time=$([char]34)$Date$($TimeZoneBias.bias)$([char]34) date=$([char]34)$date2$([char]34) component=$([char]34)$Component$([char]34) context=$([char]34)$([char]34) type=$([char]34)$Type$([char]34) thread=$([char]34)$Thread$([char]34) file=$([char]34)$([char]34)>"| Out-File -FilePath $LogPath -Append -NoClobber -Encoding default
 }
-Export-ModuleMember -Function Write-CCMLog,Show-CCMUpdates,Invoke-CCMClientAction,Get-CCMLog
