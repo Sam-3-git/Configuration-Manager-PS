@@ -483,3 +483,4 @@ Function Write-CCMLog {
         $Date2= Get-Date -Format "MM-dd-yyyy"   
         "<![LOG[$Message]LOG]!><time=$([char]34)$Date$($TimeZoneBias.bias)$([char]34) date=$([char]34)$date2$([char]34) component=$([char]34)$Component$([char]34) context=$([char]34)$([char]34) type=$([char]34)$Type$([char]34) thread=$([char]34)$Thread$([char]34) file=$([char]34)$([char]34)>"| Out-File -FilePath $LogPath -Append -NoClobber -Encoding default
 }
+Export-ModuleMember -Function Write-CCMLog,Show-CCMUpdates,Invoke-CCMClientAction,Get-CCMLog
