@@ -407,17 +407,19 @@ Function Show-CCMUpdates {
             }
         }
         # output filters
-        switch ($ApplicableUpdates){
-            {$_ -eq $null}{$NullOutputObject = New-Object -TypeName psobject -Property @{
-                'ComputerName'="$Computer"
-                'Updates'=$False
+        Foreach ($Update in $ApplicableUpdates) {
+            switch ($Update){
+                {$_ -eq $null}{$NullOutputObject = New-Object -TypeName psobject -Property @{
+                    'ComputerName'="$Computer"
+                    'Updates'=$False
+                    }
+                    Write-Output $NullOutputObject
                 }
-                Write-Output $NullOutputObject
-            }
-            {$_ -eq 'ERROR'}{#NO OUTPUT
-            }
-            default {Write-Output $ApplicableUpdates}
-        }
+                {$_ -eq 'ERROR'}{#NO OUTPUT
+                }
+                default {Write-Output $_}
+            }  
+        } 
     }
 } 
 
