@@ -90,9 +90,9 @@ Function Get-CCMLog {
         Write-Verbose "INFO: passed logs $Path"
         if ($Credential) {
             Write-Verbose "INFO: $ComputerName"
-            $LogContent = Invoke-Command -ComputerName "$ComputerName" -Credential $Credential -ScriptBlock {Get-Content -Path $Using:Path -Raw}
+            $LogContent = Invoke-Command -ComputerName "$ComputerName" -Credential $Credential -ScriptBlock {Get-Content -Path $Using:Path}
         } else {      
-            $LogContent = Get-Content -Path $Path -Raw
+            $LogContent = Get-Content -Path $Path
         }
         $RegexMatches = [regex]::Matches($LogContent, $Pattern)
         Write-Verbose "REGEXMATCH COUNT = $($RegexMatches.Count)"
