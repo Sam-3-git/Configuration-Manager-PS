@@ -129,7 +129,7 @@ Function Get-CCMLog {
                 default {Write-Output $OutputObject}
             }
         }
-        if ($RegexMatches -eq $null) { # best effort on still matching with filters for given input when not matching regex
+        if ($RegexMatches -eq 0) { # best effort on still matching with filters for given input when not matching regex
             Write-Verbose "WARNING: No REGEX matches, giving best effort"
             $SuccessFilter = '\b(Success)\b'
             $WarningFilter = '\b(Warning)\b'
