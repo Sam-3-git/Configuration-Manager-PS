@@ -499,7 +499,7 @@ Function Write-CCMLog {
     }
         $DecThread = [System.Threading.Thread]::CurrentThread.ManagedThreadId
         $HexThread = '{0:x}' -f $DecThread
-        $Thread = "$DecThread (0x$HexThread)"
+        $Thread = "$DecThread (0x$HexThread)" # not 100% sure this is the correct logic...
         $TimeZoneBias = Get-WMIObject -Query "Select Bias from Win32_TimeZone"
         $Date= Get-Date -Format "HH:mm:ss.fff"
         $Date2= Get-Date -Format "MM-dd-yyyy"   
