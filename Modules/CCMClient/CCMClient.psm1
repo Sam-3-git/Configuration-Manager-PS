@@ -98,8 +98,8 @@ Function Get-CCMLog {
         Write-Verbose "REGEXMATCH COUNT = $($RegexMatches.Count)"
         $RegexMatches | ForEach-Object {
             $DateTime = "$($_.Groups[7].Value) $($_.Groups[5].Value)"
-            Write-Verbose "$StringDate"
-            $DateTime = [datetime]::ParseExact($StringDate, 'MM-dd-yyyy HH:mm:ss.fff', $null)
+            Write-Verbose "$DateTime"
+            $DateTime = [datetime]::ParseExact($DateTime, 'MM-dd-yyyy HH:mm:ss.fff', $null)
             $Message = $_.Groups[2].Value
             $Message = $Message -replace '\r?\n', ' '
             $Type = $_.Groups[11].Value
