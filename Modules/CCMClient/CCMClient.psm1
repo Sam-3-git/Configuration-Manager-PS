@@ -176,7 +176,7 @@ Function Get-CCMLog {
                 $OutputObject = New-Object -TypeName psobject -Property @{
                     'Date\Time' = $DateTime
                     'Message' = $line
-                    'Type' = $Type
+                    'Severity' = $Type
                     'Component' = $Component
                     'Thread' = $Thread
                 }
