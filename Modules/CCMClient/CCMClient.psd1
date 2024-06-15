@@ -30,7 +30,7 @@
     Copyright = '(c) 2024 Sam. All rights reserved.'
     
     # Description of the functionality provided by this module
-    # Description = ''
+    Description = 'This module is designed to streamline the management of Configuration Manager clients, offering powerful tools for administrators to monitor, log, and trigger actions efficiently using PowerShell.'
     
     # Minimum version of the Windows PowerShell engine required by this module
     # PowerShellVersion = ''
