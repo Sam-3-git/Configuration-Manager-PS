@@ -180,7 +180,152 @@ Function Connect-CCMSession {
     }
 }
 
+
 Function Get-CCMLog {
+    <#
+        .SYNOPSIS
+        Parses Configuration Manager Logs to provide an output similar to CMtrace, but in  powershell.
+ 
+        .DESCRIPTION
+        This function is designed to parse the raw data of Configuration Manager Logs and provide a similar experience to CMTrace in the shell.
+        REGEX is applied to the raw data found in the log. REGEX Matches are then split into groupings that represent the diffrent fields in CMTrace.
+        The REGEX groupings are then assigned to various properties and assigned to an output object. New lines are removed from the message text.
+        The cmdlet is designed to parse only Configuration Manger Logs or logs written in the same raw data style. Best effort is given to other log
+        formats. REGEX is used to look for key words: "Success","Info","Warning","Error". Type is assigned to the output so that -Filter is still
+        effective and the output consistant.
+       
+        .PARAMETER Path
+        Path to Target Configuration Manager Logs. More than one log path can be passed at a time.
+ 
+        .PARAMETER Filter
+        Filters based on the type of message in the log; "Success","Info","Warning","Error".
+        
+        .PARAMETER ComputerName
+        Specifies a computer name. Only One computer name at a time can be passed.
+        Type the NetBIOS name, the IP address, or the fully qualified domain name of the computer.
+ 
+        .PARAMETER Credential
+        Specifies a user account that has permission to perform this action.
+
+        .PARAMETER InputObject
+        Accepts strings to then process through REGEX and format in the desired output.
+ 
+        .EXAMPLE
+        Get-CCMLog -LogPath "C:\Windows\CCM\Logs\PolicyAgent.log"
+ 
+        .EXAMPLE
+        Get-CCMLog -LogPath "C:\Windows\CCM\Logs\PolicyAgent.log","C:\Windows\CCM\Logs\ClientIDManagerStartup.log"
+ 
+        .EXAMPLE
+        Get-CCMLog -LogPath "C:\Windows\CCM\Logs\AppEnforce.log" -Filter Error
+ 
+        .EXAMPLE
+        Get-CCMLog -Path "C:\Windows\CCM\Logs\PolicyAgent.log" -ComputerName host.domain -Credential domain\admin01
+
+        .EXAMPLE
+        $InputObject = Get-Content -Path "C:\Windows\Logs\CBS\CBS.log"
+        Get-CCMLog -InputObject $InputObject
+
+        .EXAMPLE
+        Get-Content -Path "C:\Windows\CCM\Logs\PolicyAgent.log" -Wait | Get-CCMLog
+ 
+        .INPUTS
+        System.String
+ 
+        .OUTPUTS
+        System.Management.Automation.PSCustomObject 
+
+        .NOTES
+        There is a diffrent formatting style between Server Logs and Client Logs. Server logs tend not to have
+        a type to determine log severity. When a Server Log is passed best effor is used to determin severity. 
+        This is the same case with non CCM logs. Only best effort is given to match the message to a known key word.
+        ERROR and FAILED are used to determine severity ERROR.
+        WARNING and CAUTION are used to determine severity WARNING.
+        SUCCESS is used to determine severity SUCCESS.
+        All non matches are determinied to be severity INFO.
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string[]]$Path,
+ 
+        [Parameter()]
+        [ValidateSet("Success","Info","Warning","Error")]
+        [string]$Filter,
+ 
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [Alias('hostname','PSComputerName')]
+        [string]$ComputerName="$ENV:COMPUTERNAME",
+ 
+        [Parameter()]
+        [ValidateNotNull()]
+        [System.Management.Automation.Credential()]$Credential,
+
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string[]]$InputObject
+    )
+
+    BEGIN {
+        # want to check extension and ensure that .log is passed. may work on other files if emulating cmtrace logging. warn user.
+        $Path | ForEach-Object -Process {
+            $logext = [IO.Path]::GetExtension($Path)
+            if ($logext -eq ".log") {
+                Write-Verbose ".log is accepted ext. $_"
+            } elseif ($logext -eq ".lo_") {
+                Write-Verbose ".lo_ is valid ext. $_"
+            } elseif ($InputObject) {
+                # Do nothing as an input object means we are accepting values from pipeline
+            } else {
+                Write-Verbose "$_"
+                Write-Warning "Extension $logext is not valid .log or .lo_ extension type."
+            }
+        }
+
+        <# LOG Groupings to create to mimic support center view
+    <add key="Application Management" value="^(app.*|ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|execmgr.*|UserAffinity.*|.*Handler$|.*Provider$)" />
+      <add key="Client Registration" value="^(clientregistration|locationservices|ccmmessaging|ccmexec)" />
+      <add key="Inventory" value="^(ccmmessaging|inventoryagent|mtrmgr|swmtrreportgen|virtualapp|mtr.*|filesystemfile)" />
+      <add key="Policy" value="^(ccmmessaging|policyagent_.*|policyevaluator_.*)" />
+      <add key="Software Updates" value="^(ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|update.*|wuahandler|xmlstore|scanagent)" />
+      <add key="Software Distribution" value="^(datatransferservice|execmgr.*|contenttransfermanager|locationservices|contentaccess|filebits)" />
+      <add key="Desired Configuration Management" value="^(ci.*|dcm.*)" />
+      <add key="Operating System Deployment" value="^(ts.*)" />
+        #>
+         <################
+        # Client Pattern #
+        ##################
+        Group 1 = Message
+        Group 4 = Time
+        Group 6 = Date
+        Group 8 = Component
+        Group 10 = Type
+        Group 12 = Thread
+        Group 14 = File
+        '(?s)<!\[LOG\[(.*?)(\]LOG\])(.*?time=")(\d\d\D\d\d\D\d\d\D\d\d\d)(.*?date=")(\d\d\D\d\d\D\d\d\d\d)(".component=")(.*?)(\".context="".type=")(\d)(".thread=")(.*?)(".file=")(.*?)[^!]>'
+        Groups           1      2      3                   4                 5                  6              7           8          9               10       11     12       13   14  
+        #################>
+        $ClientPattern = '(?s)<!(\[LOG\[.*?)(.*?)(\]LOG\])(.*?time=")(\d\d\D\d\d\D\d\d\D\d\d\d)(.*?date=")(\d\d\D\d\d\D\d\d\d\d)(".component=")(.*?)(\".context="".type=")(\d)(".thread=")(.*?)(")(.*?)[^!]>'
+        Write-Verbose "Client pattern = $ClientPattern"
+        <#################
+        # Server Pattern # may need to add (?s) if new lines become an issue...
+        ##################
+        Group 1 = Message
+        Group 3 = Component
+        Group 5 = Date\Time
+        Group 10 = Thread
+        '(.*?)(\$\$<.*?)(.*?)(><)(.*?)(\+)(.*?)(><)(thread=)(.*?)>'
+            1   2         3    4    5   6   7    8   9        10
+        #>################
+        $ServerPatern = '(.*?)(\$\$<.*?)(.*?)(><)(.*?)(\+)(.*?)(><)(thread=)(.*?)>'
+        Write-Verbose "Client pattern = $ServerPattern"
+    }
+    PROCESS {
+
+    }
+}
+Function Get-CCMLogOLD {
     <#
         .SYNOPSIS
         Parses Configuration Manager Logs to provide an output similar to CMtrace, but in  powershell.
