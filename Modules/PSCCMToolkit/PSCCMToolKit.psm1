@@ -1,4 +1,4 @@
-Function Connect-CCMSession {
+Function Create-CCMSession {
     <#
         .SYNOPSIS
         Gets or creates a session to pass commands to Configuration Manager systems remotely.
@@ -243,27 +243,37 @@ Function Get-CCMLog {
         WARNING and CAUTION are used to determine severity WARNING.
         SUCCESS is used to determine severity SUCCESS.
         All non matches are determinied to be severity INFO.
+        Log groups use alternitive regex look ups on client side logs.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Path')]
     PARAM(
-        [Parameter()]
+        [Parameter(Mandatory=$false,ParameterSetName='Path')]
         [ValidateNotNullOrEmpty()]
         [string[]]$Path,
- 
-        [Parameter()]
+
+        [Parameter(Mandatory=$false,ParameterSetName='LogGroup')]
+        [ValidateNotNullOrEmpty()]
+        [ValidateSet("Application Management","Client Registration","Inventory","Policy","Software Updates","Software Distribution","Desired Configuration Management","Operating System Deployment")]
+        [string]$LogGroup,
+
+        [Parameter(Mandatory=$false,ParameterSetName='Input')]
+        [Parameter(Mandatory=$false, ParameterSetName='Path')]
+        [Parameter(Mandatory=$false,ParameterSetName='LogGroup')]
         [ValidateSet("Success","Info","Warning","Error")]
         [string]$Filter,
  
-        [Parameter()]
+        [Parameter(Mandatory=$false, ParameterSetName='Path')]
+        [Parameter(Mandatory=$false,ParameterSetName='LogGroup')]
         [ValidateNotNullOrEmpty()]
         [Alias('hostname','PSComputerName')]
         [string]$ComputerName="$ENV:COMPUTERNAME",
  
-        [Parameter()]
+        [Parameter(Mandatory=$false, ParameterSetName='Path')]
+        [Parameter(Mandatory=$false,ParameterSetName='LogGroup')]
         [ValidateNotNull()]
         [System.Management.Automation.Credential()]$Credential,
 
-        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory=$false,ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true,ParameterSetName='Input')]
         [string[]]$InputObject
     )
 
@@ -284,7 +294,7 @@ Function Get-CCMLog {
         }
 
         <# LOG Groupings to create to mimic support center view
-    <add key="Application Management" value="^(app.*|ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|execmgr.*|UserAffinity.*|.*Handler$|.*Provider$)" />
+    
       <add key="Client Registration" value="^(clientregistration|locationservices|ccmmessaging|ccmexec)" />
       <add key="Inventory" value="^(ccmmessaging|inventoryagent|mtrmgr|swmtrreportgen|virtualapp|mtr.*|filesystemfile)" />
       <add key="Policy" value="^(ccmmessaging|policyagent_.*|policyevaluator_.*)" />
@@ -320,11 +330,35 @@ Function Get-CCMLog {
         #>################
         $ServerPatern = '(.*?)(\$\$<.*?)(.*?)(><)(.*?)(\+)(.*?)(><)(thread=)(.*?)>'
         Write-Verbose "Client pattern = $ServerPattern"
+        <#############
+        # Log Groups #
+        ##############>
+        $CCMClientLogPath = "$ENV:SYSTEMROOT\CCM\Logs\"
+        $ApplicationManagementPattern = '^(app.*|ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|execmgr.*|UserAffinity.*|.*Handler$|.*Provider$)'
+        $ClientRegistrationPattern = '^(clientregistration|locationservices|ccmmessaging|ccmexec)'
+        $InventoryPattern ='^(ccmmessaging|inventoryagent|mtrmgr|swmtrreportgen|virtualapp|mtr.*|filesystemfile)'
+        $PolicyPattern = '^(ccmmessaging|policyagent_.*|policyevaluator_.*)'
+        $SoftwareUpdatesPattern = '^(ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|update.*|wuahandler|xmlstore|scanagent)'
+        $SoftwareDistributionPattern = '^(datatransferservice|execmgr.*|contenttransfermanager|locationservices|contentaccess|filebits)'
+        $DesiredConfigurationManagementPattern = 'Desired Configuration Management" value="^(ci.*|dcm.*)'
+        $OperatingSystemDeploymentPattern = '^(ts.*)'
     }
     PROCESS {
+        Write-Verbose "Current Param set: $($PSCmdlet.ParameterSetName)"
+        switch ($PSCmdlet.ParameterSetName) {
+            'Path' {
 
+            }
+            'LogGroup' {
+
+            }
+            'Input' {
+                
+            }
+        }    
     }
 }
+
 Function Get-CCMLogOLD {
     <#
         .SYNOPSIS
