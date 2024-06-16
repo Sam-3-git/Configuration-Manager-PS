@@ -38,7 +38,7 @@ Function Create-CCMSession {
         [Microsoft.Management.Infrastructure.CimSession]$CimSession,
 
         [Parameter(Mandatory=$false,ParameterSetName='Session')]
-        [System.Management.Automation.Runspaces.PSSession]$PSSession,
+        [System.Management.Automation.Runspaces.PSSession[]]$PSSession,
 
         [Parameter(Mandatory=$false,ParameterSetName='NoCredential')]
         [Parameter(Mandatory=$false, ParameterSetName='Credential')]
@@ -83,7 +83,6 @@ Function Create-CCMSession {
             }
             'NoCredential' {
                 switch ($PSBoundParameters.Keys) {
-                    # need to sort through 
                     'ComputerName' {
                         if ("$ComputerName" -eq "$ENV:COMPUTERNAME") {
                             Write-Verbose "Passed Computer matches localhost: $ComputerName -eq $ENV:COMPUTERNAME"
@@ -177,6 +176,7 @@ Function Create-CCMSession {
                 }
             }
         }
+        return $OutputObject
     }
 }
 
@@ -278,31 +278,7 @@ Function Get-CCMLog {
     )
 
     BEGIN {
-        # want to check extension and ensure that .log is passed. may work on other files if emulating cmtrace logging. warn user.
-        $Path | ForEach-Object -Process {
-            $logext = [IO.Path]::GetExtension($Path)
-            if ($logext -eq ".log") {
-                Write-Verbose ".log is accepted ext. $_"
-            } elseif ($logext -eq ".lo_") {
-                Write-Verbose ".lo_ is valid ext. $_"
-            } elseif ($InputObject) {
-                # Do nothing as an input object means we are accepting values from pipeline
-            } else {
-                Write-Verbose "$_"
-                Write-Warning "Extension $logext is not valid .log or .lo_ extension type."
-            }
-        }
-
-        <# LOG Groupings to create to mimic support center view
-    
-      <add key="Client Registration" value="^(clientregistration|locationservices|ccmmessaging|ccmexec)" />
-      <add key="Inventory" value="^(ccmmessaging|inventoryagent|mtrmgr|swmtrreportgen|virtualapp|mtr.*|filesystemfile)" />
-      <add key="Policy" value="^(ccmmessaging|policyagent_.*|policyevaluator_.*)" />
-      <add key="Software Updates" value="^(ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|update.*|wuahandler|xmlstore|scanagent)" />
-      <add key="Software Distribution" value="^(datatransferservice|execmgr.*|contenttransfermanager|locationservices|contentaccess|filebits)" />
-      <add key="Desired Configuration Management" value="^(ci.*|dcm.*)" />
-      <add key="Operating System Deployment" value="^(ts.*)" />
-        #>
+        Write-Verbose "Begin block begin"
          <################
         # Client Pattern #
         ##################
@@ -328,91 +304,126 @@ Function Get-CCMLog {
         '(.*?)(\$\$<.*?)(.*?)(><)(.*?)(\+)(.*?)(><)(thread=)(.*?)>'
             1   2         3    4    5   6   7    8   9        10
         #>################
-        $ServerPatern = '(.*?)(\$\$<.*?)(.*?)(><)(.*?)(\+)(.*?)(><)(thread=)(.*?)>'
+        $ServerPattern = '(.*?)(\$\$<.*?)(.*?)(><)(.*?)(\+)(.*?)(><)(thread=)(.*?)>'
         Write-Verbose "Client pattern = $ServerPattern"
-        <#############
-        # Log Groups #
-        ##############>
-        $CCMClientLogPath = "$ENV:SYSTEMROOT\CCM\Logs\"
-        $ApplicationManagementPattern = '^(app.*|ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|execmgr.*|UserAffinity.*|.*Handler$|.*Provider$)'
-        $ClientRegistrationPattern = '^(clientregistration|locationservices|ccmmessaging|ccmexec)'
-        $InventoryPattern ='^(ccmmessaging|inventoryagent|mtrmgr|swmtrreportgen|virtualapp|mtr.*|filesystemfile)'
-        $PolicyPattern = '^(ccmmessaging|policyagent_.*|policyevaluator_.*)'
-        $SoftwareUpdatesPattern = '^(ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|update.*|wuahandler|xmlstore|scanagent)'
-        $SoftwareDistributionPattern = '^(datatransferservice|execmgr.*|contenttransfermanager|locationservices|contentaccess|filebits)'
-        $DesiredConfigurationManagementPattern = 'Desired Configuration Management" value="^(ci.*|dcm.*)'
-        $OperatingSystemDeploymentPattern = '^(ts.*)'
-    }
-    PROCESS {
+        # Do some validation for needful checks and warnings
         Write-Verbose "Current Param set: $($PSCmdlet.ParameterSetName)"
         switch ($PSCmdlet.ParameterSetName) {
             'Path' {
-
+                $Path | ForEach-Object -Process {
+                    $logext = [IO.Path]::GetExtension($Path)
+                    if ($logext -eq ".log") {
+                        Write-Verbose ".log is accepted ext. $_"
+                    } elseif ($logext -eq ".lo_") {
+                        Write-Verbose ".lo_ is valid ext. $_"
+                    } elseif ($InputObject) {
+                        # Do nothing as an input object means we are accepting values from pipeline
+                    } else {
+                        Write-Verbose "$_"
+                        Write-Warning "Extension $logext is not valid .log or .lo_ extension type."
+                    }
+                }
             }
             'LogGroup' {
-
+                if ($PSBoundParameters.ContainsKey('Path') -and $PSBoundParameters.ContainsKey('LogGroup')) { # quick validation for log group and path
+                    Write-Error "Path and LogGroup cannot be used together."
+                    return
+                }
+                <#############
+                # Log Groups #
+                #############>
+                $CCMClientLogPath = "$ENV:SYSTEMROOT\CCM\Logs\"
+                $LogGroupHashTable = @{
+                    'Application Management'='^(app.*|ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|execmgr.*|UserAffinity.*|.*Handler$|.*Provider$)'
+                    'Client Registration'='^(clientregistration|locationservices|ccmmessaging|ccmexec)'
+                    'Inventory'='^(ccmmessaging|inventoryagent|mtrmgr|swmtrreportgen|virtualapp|mtr.*|filesystemfile)'
+                    'Policy'='^(ccmmessaging|policyagent_.*|policyevaluator_.*)'
+                    'Software Updates'='^(ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|update.*|wuahandler|xmlstore|scanagent)'
+                    'Software Distribution'='^(datatransferservice|execmgr.*|contenttransfermanager|locationservices|contentaccess|filebits)'
+                    'Desired Configuration Management'='Desired Configuration Management" value="^(ci.*|dcm.*)'
+                    'Operating System Deployment'='^(ts.*)'
+                }
             }
             'Input' {
-                
+                $LogContent = $InputObject           
             }
-        }    
+        } 
+        Write-Verbose "Begin block end"
+    }
+    PROCESS {
+        Write-Verbose "Process block begin"
+        Write-Verbose "Current Param set: $($PSCmdlet.ParameterSetName)"
+        switch ($PSCmdlet.ParameterSetName) { # the goal in this section is to determine log content and pass it to regex
+            'Path' {
+                switch ($PSBoundParameters.Keys) {
+                    'ComputerName' {
+
+                    }
+                }
+            }
+            'LogGroup' {
+                switch ($PSBoundParameters.Keys) {
+                    'ComputerName' {
+                        
+                    }
+                }
+            }
+            'Input' {
+                # Nothing to do here...            
+            }
+        }
+        # Client Regex Checks
+        $ClientRegexMatches = [regex]::Matches($LogContent, $ClientPattern)
+        # Server Regex Checks
+        $ServerRegexMatches = [regex]::Matches($LogContent, $ServerPattern)
+
+        if ($ClientRegexMatches.Count -gt 0) {
+            $ClientRegexMatches | ForEach-Object {
+                $DateTime = "$($_.Groups[6].Value) $($_.Groups[4].Value)"
+                Write-Verbose "$DateTime"
+                $DateTime = [datetime]::ParseExact($DateTime, 'MM-dd-yyyy HH:mm:ss.fff', $null)
+                $Message = $_.Groups[1].Value
+                $Message = $Message -replace '\r?\n', ' '
+                $Type = $_.Groups[10].Value
+                $Component = $_.Groups[8].Value
+                $Thread = $_.Groups[12].Value
+                $File = $_.Groups[14].Value
+                # translate type to error value
+                switch ($Type) {
+                    '1' {$Type = 'Info'}
+                    '0' {$Type = 'Success'}
+                    '2' {$Type = 'Warning'}
+                    '3' {$Type = 'Error'}
+                    default {$Type = 'Unknown'}
+                }
+                # Create output object for match item
+                $OutputObject = New-Object -TypeName psobject -Property @{
+                    'Date\Time' = $DateTime
+                    'Message' = $Message
+                    'Severity' = $Type
+                    'Component' = $Component
+                    'Thread' = $Thread
+                    'File' = $File
+                }
+                switch ($Filter) {
+                    'Info' {if ($Type -eq 'Info') {Write-Output $OutputObject}}
+                    'Success' {if ($Type -eq 'Success') {Write-Output $OutputObject}}
+                    'Warning' {if ($Type -eq 'Warning') {Write-Output $OutputObject}}
+                    'Error' {if ($Type -eq 'Error') {Write-Output $OutputObject}}
+                    default {Write-Output $OutputObject}
+                }
+            }
+        } elseif ($ServerRegexMatches.Count -gt 0) {
+
+        } else {
+
+        }
+        Write-Verbose "Process Block End"
     }
 }
 
 Function Get-CCMLogOLD {
-    <#
-        .SYNOPSIS
-        Parses Configuration Manager Logs to provide an output similar to CMtrace, but in  powershell.
- 
-        .DESCRIPTION
-        This function is designed to parse the raw data of Configuration Manager Logs and provide a similar experience to CMTrace in the shell.
-        REGEX is applied to the raw data found in the log. REGEX Matches are then split into groupings that represent the diffrent fields in CMTrace.
-        The REGEX groupings are then assigned to various properties and assigned to an output object. New lines are removed from the message text.
-        The cmdlet is designed to parse only Configuration Manger Logs or logs written in the same raw data style. Best effort is given to other log
-        formats. REGEX is used to look for key words: "Success","Info","Warning","Error". Type is assigned to the output so that -Filter is still
-        effective and the output consistant.
-       
-        .PARAMETER Path
-        Path to Target Configuration Manager Logs. More than one log path can be passed at a time.
- 
-        .PARAMETER Filter
-        Filters based on the type of message in the log; "Success","Info","Warning","Error".
-        
-        .PARAMETER ComputerName
-        Specifies a computer name. Only One computer name at a time can be passed.
-        Type the NetBIOS name, the IP address, or the fully qualified domain name of the computer.
- 
-        .PARAMETER Credential
-        Specifies a user account that has permission to perform this action.
 
-        .PARAMETER InputObject
-        Accepts strings to then process through REGEX and format in the desired output.
- 
-        .EXAMPLE
-        Get-CCMLog -LogPath "C:\Windows\CCM\Logs\PolicyAgent.log"
- 
-        .EXAMPLE
-        Get-CCMLog -LogPath "C:\Windows\CCM\Logs\PolicyAgent.log","C:\Windows\CCM\Logs\ClientIDManagerStartup.log"
- 
-        .EXAMPLE
-        Get-CCMLog -LogPath "C:\Windows\CCM\Logs\AppEnforce.log" -Filter Error
- 
-        .EXAMPLE
-        Get-CCMLog -Path "C:\Windows\CCM\Logs\PolicyAgent.log" -ComputerName host.domain -Credential domain\admin01
-
-        .EXAMPLE
-        $InputObject = Get-Content -Path "C:\Windows\Logs\CBS\CBS.log"
-        Get-CCMLog -InputObject $InputObject
-
-        .EXAMPLE
-        Get-Content -Path "C:\Windows\CCM\Logs\PolicyAgent.log" -Wait | Get-CCMLog
- 
-        .INPUTS
-        System.String
- 
-        .OUTPUTS
-        System.Management.Automation.PSCustomObject 
-    #>
     [CmdletBinding()]
     PARAM(
         [Parameter()]
