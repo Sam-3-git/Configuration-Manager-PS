@@ -1,4 +1,4 @@
-Function Create-CCMSession {
+Function Create-CCMSessionObject {
     <#
         .SYNOPSIS
         Gets or creates a session to pass commands to Configuration Manager systems remotely.
@@ -60,7 +60,7 @@ Function Create-CCMSession {
     PROCESS {
         Write-Verbose "Create initial output object"
         $OutputObject= @{
-            CCMConnectionParams = @{ }
+            connectionSplat = @{ }
         }
 
         Write-Verbose "Current Param set: $($PSCmdlet.ParameterSetName)"
@@ -69,13 +69,13 @@ Function Create-CCMSession {
                 switch ($PSBoundParameters.Keys) {
                     'CimSession' {
                         Write-Verbose "CimSession passed. Setting OutputObject to CimSession"
-                        $OutputObject['CCMConnectionParams'] = @{ CimSession = $CimSession }
+                        $OutputObject['connectionSplat'] = @{ CimSession = $CimSession }
                         $OutputObject['ComputerName'] = $CimSession.ComputerName
                         $OutputObject['ConnectionType'] = 'CimSession'
                     }
                     'PSSession' {
                         Write-Verbose "PSession passed. Setting OutputObject to PSSession"
-                        $OutputObject['CCMConnectionParams'] = @{ Session = $PSSession }
+                        $OutputObject['connectionSplat'] = @{ Session = $PSSession }
                         $OutputObject['ComputerName'] = $PSSession.ComputerName
                         $OutputObject['ConnectionType'] = 'PSSession'
                     }
@@ -87,37 +87,37 @@ Function Create-CCMSession {
                         if ("$ComputerName" -eq "$ENV:COMPUTERNAME") {
                             Write-Verbose "Passed Computer matches localhost: $ComputerName -eq $ENV:COMPUTERNAME"
                             Write-Verbose "CCMConnectionParams set to empty"
-                            $OutputObject['CCMConnectionParams'] = @{ }
+                            $OutputObject['connectionSplat'] = @{ }
                             $OutputObject['ConnectionType'] = 'ComputerName'
                         } else {
                             switch ($SessionType) {
                                 'CimSession' { # making a cim session for connection. doing the needfull checks
                                     if ($CimSession = Get-CimSession -ComputerName $ComputerName -ErrorAction Ignore) { # checking for existing cim session
                                         Write-Verbose "CimSession present on $ComputerName"
-                                        $OutputObject['CCMConnectionParams'] = @{CimSession = $CimSession[0]}
+                                        $OutputObject['connectionSplat'] = @{CimSession = $CimSession[0]}
                                         $OutputObject['ConnectionType'] = 'CimSession'
                                     } elseif ($PSSession = (Get-PSSession -ErrorAction Ignore).Where({$_.ComputerName -eq $ComputerName -and $_.State -eq 'Opened'})) { # checking for actinve pssession
                                         Write-Verbose "PSSession present on $ComputerName"
-                                        $OutputObject['CCMConnectionParams'] = @{PSSession=$PSSession[0]}
+                                        $OutputObject['connectionSplat'] = @{PSSession=$PSSession[0]}
                                         $OutputObject['ConnectionType'] = 'PSSession'
                                     } else { # attempt to create CIM session
                                         Write-Verbose "No active sessions present on $ComputerName"
-                                        $OutputObject['CCMConnectionParams'] = @{ ComputerName = $ComputerName }
+                                        $OutputObject['connectionSplat'] = @{ ComputerName = $ComputerName }
                                         $OutputObject['ConnectionType'] = 'CimSession'
                                     }
                                 }
                                 'PSSession' { # making a PS session for connection. doing the needfull checks
                                     if ($PSSession = (Get-PSSession -ErrorAction Ignore).Where({$_.ComputerName -eq $ComputerName -and $_.State -eq 'Opened'})) {
                                         Write-Verbose "PSSession present on $ComputerName"
-                                        $OutputObject['CCMConnectionParams'] = @{PSSession = $PSSession[0]}
+                                        $OutputObject['connectionSplat'] = @{PSSession = $PSSession[0]}
                                         $OutputObject['ConnectionType'] = 'PSSession'
                                     } elseif ($CimSession = Get-CimSession -ComputerName $ComputerName -ErrorAction Ignore) { # checking for existing cim session
                                         Write-Verbose "PSSession present on $ComputerName"
-                                        $OutputObject['CCMConnectionParams'] = @{PSSession=$PSSession[0]}
+                                        $OutputObject['connectionSplat'] = @{PSSession=$PSSession[0]}
                                         $OutputObject['ConnectionType'] = 'PSSession'
                                     } else { # attempt to create CIM session
                                         Write-Verbose "No active sessions present on $ComputerName"
-                                        $OutputObject['CCMConnectionParams'] = @{ ComputerName = $ComputerName }
+                                        $OutputObject['connectionSplat'] = @{ ComputerName = $ComputerName }
                                         $OutputObject['ConnectionType'] = 'PSSession'
                                     }
                                 }    
@@ -133,37 +133,37 @@ Function Create-CCMSession {
                         if ("$ComputerName" -eq "$ENV:COMPUTERNAME") {
                             Write-Verbose "Passed Computer matches localhost: $ComputerName -eq $ENV:COMPUTERNAME"
                             Write-Verbose "CCMConnectionParams set to empty"
-                            $OutputObject['CCMConnectionParams'] = @{ }
+                            $OutputObject['connectionSplat'] = @{ }
                             $OutputObject['ConnectionType'] = 'ComputerName'
                         } else {
                             switch ($SessionType) {
                                 'CimSession' { # making a cim session for connection. doing the needfull checks
                                     if ($CimSession = Get-CimSession -ComputerName $ComputerName -ErrorAction Ignore) { # checking for existing cim session
                                         Write-Verbose "CimSession present on $ComputerName"
-                                        $OutputObject['CCMConnectionParams'] = @{CimSession = $CimSession[0]}
+                                        $OutputObject['connectionSplat'] = @{CimSession = $CimSession[0]}
                                         $OutputObject['ConnectionType'] = 'CimSession'
                                     } elseif ($PSSession = (Get-PSSession -Credential $Credential -ErrorAction Ignore).Where({$_.ComputerName -eq $ComputerName -and $_.State -eq 'Opened'})) { # checking for actinve pssession
                                         Write-Verbose "PSSession present on $ComputerName"
-                                        $OutputObject['CCMConnectionParams'] = @{PSSession=$PSSession[0]}
+                                        $OutputObject['connectionSplat'] = @{PSSession=$PSSession[0]}
                                         $OutputObject['ConnectionType'] = 'PSSession'
                                     } else { # attempt to create CIM session
                                         Write-Verbose "No active sessions present on $ComputerName"
-                                        $OutputObject['CCMConnectionParams'] = @{ ComputerName = $ComputerName }
+                                        $OutputObject['connectionSplat'] = @{ ComputerName = $ComputerName }
                                         $OutputObject['ConnectionType'] = 'CimSession'
                                     }
                                 }
                                 'PSSession' { # making a PS session for connection. doing the needfull checks
                                     if ($PSSession = (Get-PSSession -Credential $Credential -ErrorAction Ignore).Where({$_.ComputerName -eq $ComputerName -and $_.State -eq 'Opened'})) {
                                         Write-Verbose "PSSession present on $ComputerName"
-                                        $OutputObject['CCMConnectionParams'] = @{PSSession = $PSSession[0]}
+                                        $OutputObject['connectionSplat'] = @{PSSession = $PSSession[0]}
                                         $OutputObject['ConnectionType'] = 'PSSession'
                                     } elseif ($CimSession = Get-CimSession -ComputerName $ComputerName -ErrorAction Ignore) { # checking for existing cim session
                                         Write-Verbose "PSSession present on $ComputerName"
-                                        $OutputObject['CCMConnectionParams'] = @{PSSession=$PSSession[0]}
+                                        $OutputObject['connectionSplat'] = @{PSSession=$PSSession[0]}
                                         $OutputObject['ConnectionType'] = 'PSSession'
                                     } else { # attempt to create CIM session
                                         Write-Verbose "No active sessions present on $ComputerName"
-                                        $OutputObject['CCMConnectionParams'] = @{ 
+                                        $OutputObject['connectionSplat'] = @{ 
                                                                                     ComputerName = $ComputerName
                                                                                     Credential = $Credential
                                                                                 }
