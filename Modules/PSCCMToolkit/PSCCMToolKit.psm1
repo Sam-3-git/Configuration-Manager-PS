@@ -70,6 +70,7 @@ Function Open-CCMSession {
                           Write-Verbose "$CurrentFunction new CCMSession created"
                         } catch {
                             Write-Error $PSItem
+                            return $PSItem
                         }
                     }                        
                 }
@@ -94,6 +95,7 @@ Function Open-CCMSession {
                           Write-Verbose "$CurrentFunction new CCMSession created"
                         } catch {
                             Write-Error $PSItem
+                            return $PSItem
                         }
                     }
                 }    
@@ -175,7 +177,7 @@ Function Get-CCMLog {
         All non matches are determinied to be severity INFO.
         Log groups use alternitive regex look ups on client side logs.
     #>
-    [CmdletBinding(DefaultParameterSetName='NoCredential')]
+    [CmdletBinding(DefaultParameterSetName='Credential')]
     PARAM(
         [Parameter(Mandatory=$false, ParameterSetName='NoCredential')]
         [Parameter(Mandatory=$false, ParameterSetName='Credential')]
@@ -305,26 +307,43 @@ Function Get-CCMLog {
                 return
             }
         }
-        Write-Verbose "$CurrentFunction Begin block end"
-    }
-    PROCESS {
-        Write-Verbose "$CurrentFunction Process block begin"
-        Write-Verbose "$CurrentFunction Current Param set: $($PSCmdlet.ParameterSetName)"
+
         # call out to open-ccmsession to get connection point
         $CCMSession = $null
         try {
             if ($Credential) {
-                $CCMSession = Open-CCMSession -ComputerName $ComputerName -Credential $Credential
-            } elseif ($PSSession) {
-                $CCMSession = Open-CCMSession -PSSession $PSSession
+                try {
+                    $CCMSession = Open-CCMSession -ComputerName $ComputerName -Credential $Credential
+                } catch {
+                    $PSItem
+                    return
+                }
+                } elseif ($PSSession) {
+                try {
+                    $CCMSession = Open-CCMSession -PSSession $PSSession
+                } catch {
+                    $PSItem
+                    return
+                }
             } else {
-                $CCMSession = Open-CCMSession -ComputerName $ComputerName
+                try {
+                    $CCMSession = Open-CCMSession -ComputerName $ComputerName
+                } catch {
+                    $PSItem
+                    return
+                }
             }
         } catch {
             Write-Error "Unable to make a connection point to $ComputerName"
             $PSItem
             return
         }
+
+        Write-Verbose "$CurrentFunction Begin block end"
+    }
+    PROCESS {
+        Write-Verbose "$CurrentFunction Process block begin"
+        Write-Verbose "$CurrentFunction Current Param set: $($PSCmdlet.ParameterSetName)"
         # Establish LogContent
         switch ($PSBoundParameters.Keys) {
             'Path' {
@@ -366,10 +385,10 @@ Function Get-CCMLog {
 
         # Client Regex Checks
         $ClientRegexMatches = [regex]::Matches($LogContent, $ClientPattern)
-        Write-Verbose "$CurrentFunction ClientRegexCount = $($ClientRegexMatches.Count)"
+        Write-Verbose "$CurrentFunction ClientRegexMatches complete"
         # Server Regex Checks
         $ServerRegexMatches = [regex]::Matches($LogContent, $ServerPattern)
-        Write-Verbose "$CurrentFunction ServerRegexCount = $($ServerRegexMatches.Count)"
+        Write-Verbose "$CurrentFunction ServerRegexMatches Complete"
         if ($ClientRegexMatches.Count -gt 0) { # cient regex
             $ClientRegexMatches | ForEach-Object {
                 $DateTime = "$($_.Groups[6].Value) $($_.Groups[4].Value)"
