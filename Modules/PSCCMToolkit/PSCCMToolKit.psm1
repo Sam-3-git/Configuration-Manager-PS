@@ -348,7 +348,9 @@ Function Get-CCMLog {
                     if ($CCMSession) {
                         $LogContent = Invoke-Command -Session $CCMSession -ScriptBlock {
                             $CCMClientLogs = Get-ChildItem -Path $Using:CCMClientLogPath | Select-Object -ExpandProperty Name
-                            $CCMCLientLogMatches = $CCMClientLogs -match $Using:LogGroupHashTable.$Using:LogGroup
+                            $LogGroupHashTable = $Using:LogGroupHashTable
+                            $LogGroup = $Using:LogGroup
+                            $CCMCLientLogMatches = $CCMClientLogs -match $LogGroupHashTable.$LogGroup
                             $ContentPath = $CCMCLientLogMatches | ForEach-Object {"$Using:CCMClientLogpath$_"}
                             Get-Content -Path $ContentPath
                         }
