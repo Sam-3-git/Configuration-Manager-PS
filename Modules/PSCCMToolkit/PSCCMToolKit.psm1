@@ -353,13 +353,9 @@ Function Get-CCMLog {
                             Get-Content -Path $ContentPath
                         }
                     } else {
-                        Write-Verbose $CCMClientLogPath
                         $CCMClientLogs = Get-ChildItem -Path $CCMClientLogPath | Select-Object -ExpandProperty Name
-                        Write-Verbose $CCMClientLogs
                         $CCMCLientLogMatches = $CCMClientLogs -match $LogGroupHashTable.$LogGroup
-                        Write-Verbose $CCMCLientLogMatches
                         $ContentPath = $CCMCLientLogMatches | ForEach-Object {"$CCMClientLogpath$_"}
-                        Write-Verbose $ContentPath
                         Get-Content -Path $ContentPath
                     }
                 } catch {
