@@ -41,12 +41,12 @@ Function Open-CCMSession {
         [System.Management.Automation.Credential()]$Credential # () allows username only to be passed
     )
     $CurrentFunction = (Get-PSCallStack)[0].Command
-    Write-Verbose "Current Param set: $($PSCmdlet.ParameterSetName)"
+    Write-Verbose "$CurrentFunction Current Param set: $($PSCmdlet.ParameterSetName)"
     switch ($PSCmdlet.ParameterSetName) {
         'Session' { # just pass back if for some reason a pssession is passed
             switch ($PSBoundParameters.Keys) {
                 'PSSession' {
-                    Write-Verbose "PSession passed. Setting OutputObject to PSSession"
+                    Write-Verbose "$CurrentFunction PSession passed. Setting OutputObject to PSSession"
                     $OutputObject = $PSSession
                 }
             }
@@ -54,20 +54,20 @@ Function Open-CCMSession {
         'NoCredential' { # if set no crendintial make attemtps without -credential 
             switch ($PSBoundParameters.Keys) {
                 'ComputerName' {
-                    Write-Verbose "ComputerName = $ComputerName"
+                    Write-Verbose "$CurrentFunction ComputerName = $ComputerName"
                     if ("$ComputerName" -eq "$ENV:COMPUTERNAME") {
-                        Write-Verbose "Passed Computer matches localhost: $ComputerName -eq $ENV:COMPUTERNAME"
-                        Write-Verbose "CCMConnection set to empty"
+                        Write-Verbose "$CurrentFunction Passed Computer matches localhost: $ComputerName -eq $ENV:COMPUTERNAME"
+                        Write-Verbose "$CurrentFunction CCMConnection set to empty"
                         $OutputObject = $null
                     } elseif ($PSSession = Get-PSSession -ComputerName $ComputerName -Name 'CCMSession' -ErrorAction Ignore) {
-                        Write-Verbose "Found PSSession with name of 'CCMSession'"
-                        Write-Verbose "Passing session to output"
+                        Write-Verbose "$CurrentFunction Found PSSession with name of 'CCMSession'"
+                        Write-Verbose "$CurrentFunction Passing session to output"
                         $OutputObject = $PSSession
                     } else {
-                        Write-Verbose "No session found"
+                        Write-Verbose "$CurrentFunction No session found"
                         try {
                           $PSSession = New-PSSession -ComputerName $ComputerName -Name 'CCMSession'
-                          Write-Verbose "new CCMSession created"
+                          Write-Verbose "$CurrentFunction new CCMSession created"
                         } catch {
                             Write-Error $PSItem
                         }
@@ -78,20 +78,20 @@ Function Open-CCMSession {
         'Credential' { # if a credential is passed make attemtpts with -credential
             switch ($PSBoundParameters.Keys) {
                 'ComputerName' {
-                    Write-Verbose "ComputerName = $ComputerName"
+                    Write-Verbose "$CurrentFunction ComputerName = $ComputerName"
                     if ("$ComputerName" -eq "$ENV:COMPUTERNAME") {
-                        Write-Verbose "Passed Computer matches localhost: $ComputerName -eq $ENV:COMPUTERNAME"
-                        Write-Verbose "CCMConnection set to empty"
+                        Write-Verbose "$CurrentFunction Passed Computer matches localhost: $ComputerName -eq $ENV:COMPUTERNAME"
+                        Write-Verbose "$CurrentFunction CCMConnection set to empty"
                         $OutputObject = $null
                     } elseif ($PSSession = Get-PSSession -ComputerName $ComputerName -Name 'CCMSession' -Credential $Credential -ErrorAction Ignore) {
-                        Write-Verbose "Found PSSession with name of 'CCMSession'"
-                        Write-Verbose "Passing session to output"
+                        Write-Verbose "$CurrentFunction Found PSSession with name of 'CCMSession'"
+                        Write-Verbose "$CurrentFunction Passing session to output"
                         $OutputObject = $PSSession
                     } else {
-                        Write-Verbose "No session found"
+                        Write-Verbose "$CurrentFunction No session found"
                         try {
                           $PSSession = New-PSSession -ComputerName $ComputerName -Name -Credential $Credential 'CCMSession'
-                          Write-Verbose "new CCMSession created"
+                          Write-Verbose "$CurrentFunction new CCMSession created"
                         } catch {
                             Write-Error $PSItem
                         }
@@ -100,7 +100,7 @@ Function Open-CCMSession {
             }
         }
     }
-    Write-Verbose "Returning Output object for Open-CCMSession"     
+    Write-Verbose "$CurrentFunction Returning Output object for Open-CCMSession"     
     return $OutputObject
 }
 
@@ -239,7 +239,7 @@ Function Get-CCMLog {
         Groups           1      2      3                   4                 5                  6              7           8          9               10       11     12       13   14  
         #################>
         $ClientPattern = '(?s)<!\[LOG\[(.*?)(\]LOG\])(.*?time=")(\d\d\D\d\d\D\d\d\D\d\d\d)(.*?date=")(\d\d\D\d\d\D\d\d\d\d)(".component=")(.*?)(\".context="".type=")(\d)(".thread=")(.*?)(".file=")(.*?)[^!]>'
-        Write-Verbose "Client pattern = $ClientPattern"
+        Write-Verbose "$CurrentFunction Client pattern = $ClientPattern"
         <#################
         # Server Pattern # may need to add (?s) if new lines become an issue...
         ##################
@@ -251,73 +251,68 @@ Function Get-CCMLog {
             1   2         3    4    5   6   7    8   9        10
         #>################
         $ServerPattern = '(.*?)(\$\$<.*?)(.*?)(><)(.*?)(\+)(.*?)(><)(thread=)(.*?)>'
-        Write-Verbose "Client pattern = $ServerPattern"
+        Write-Verbose "$CurrentFunction Server pattern = $ServerPattern"
         # Best effort Patterns
         $SuccessFilter = '\b(Success | SUCCESS)\b'
         $WarningFilter = '\b(Warning | Caution | WARNING | CAUTION)\b'
         $ErrorFilter = '\b(Error | Failed | ERROR | FAILED)\b'
         # Do some validation for needful checks and warnings
-        Write-Verbose "Current Param set: $($PSCmdlet.ParameterSetName)"
-        switch ($PSCmdlet.ParameterSetName) {
-            'Path' {
-                $Path | ForEach-Object -Process {
-                    $logext = [IO.Path]::GetExtension($Path)
-                    if ($logext -eq ".log") {
-                        Write-Verbose ".log is accepted ext. $_"
-                    } elseif ($logext -eq ".lo_") {
-                        Write-Verbose ".lo_ is valid ext. $_"
-                    } elseif ($InputObject) {
-                        # Do nothing as an input object means we are accepting values from pipeline
-                    } else {
-                        Write-Verbose "$_"
-                        Write-Warning "Extension $logext is not valid .log or .lo_ extension type."
-                    }
-                }
+        Write-Verbose "$CurrentFunction Current Param set: $($PSCmdlet.ParameterSetName)"
+        if ($Path) { # path checks
+            $Path | ForEach-Object -Process {
+                $logext = [IO.Path]::GetExtension($Path)
+                if ($logext -eq ".log") {
+                    Write-Verbose "$CurrentFunction .log is accepted ext. $_"
+                } elseif ($logext -eq ".lo_") {
+                    Write-Verbose "$CurrentFunction .lo_ is valid ext. $_"
+                } elseif ($InputObject) {
+                    # Do nothing as an input object means we are accepting values from pipeline
+                } else {
+                    Write-Verbose "$CurrentFunction $_"
+                    Write-Warning "Extension $logext is not valid .log or .lo_ extension type."
+                }    
             }
-            'LogGroup' {
-                if ($PSBoundParameters.ContainsKey('Path') -and $PSBoundParameters.ContainsKey('LogGroup')) { # quick validation for log group and path
-                    Write-Error "Path and LogGroup cannot be used together."
-                    return
-                }
-                <#############
-                # Log Groups #
-                #############>
-                $CCMClientLogPath = "$ENV:SYSTEMROOT\CCM\Logs\"
-                Write-Verbose "Setting CCMCLientLogPath to $CCMClientLogPath"
-                $LogGroupHashTable = @{
-                    'Application Management'='^(app.*|ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|execmgr.*|UserAffinity.*|.*Handler$|.*Provider$)'
-                    'Client Registration'='^(clientregistration|locationservices|ccmmessaging|ccmexec)'
-                    'Inventory'='^(ccmmessaging|inventoryagent|mtrmgr|swmtrreportgen|virtualapp|mtr.*|filesystemfile)'
-                    'Policy'='^(ccmmessaging|policyagent_.*|policyevaluator_.*)'
-                    'Software Updates'='^(ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|update.*|wuahandler|xmlstore|scanagent)'
-                    'Software Distribution'='^(datatransferservice|execmgr.*|contenttransfermanager|locationservices|contentaccess|filebits)'
-                    'Desired Configuration Management'='Desired Configuration Management" value="^(ci.*|dcm.*)'
-                    'Operating System Deployment'='^(ts.*)'
-                }
-                Write-Verbose "LogGroupHashTableREGEX = $LogGroupHashTable"
+        }
+        if ($LogGroup) { # loggroup values
+            if ($PSBoundParameters.ContainsKey('Path') -and $PSBoundParameters.ContainsKey('LogGroup')) { # quick validation for log group and path
+                Write-Error "Path and LogGroup cannot be used together."
+                return
             }
-            'Credential' {
-                if ($ENV:COMPUTERNAME -eq $ComputerName) {
-                    Write-Error "-Credential cannot be used on localhost"
-                    return
-                }
-                if ($PSBoundParameters.ContainsKey('Credential') -and $PSBoundParameters.ContainsKey('PSSession')) { # quick validation for log group and path
-                    Write-Error "Credential and PSSession cannot be used together."
-                    return
-                }
+            <#############
+            # Log Groups #
+            #############>
+            $CCMClientLogPath = "$ENV:SYSTEMROOT\CCM\Logs\"
+            Write-Verbose "$CurrentFunction Setting CCMCLientLogPath to $CCMClientLogPath"
+            $LogGroupHashTable = @{
+                'Application Management'='^(app.*|ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|execmgr.*|UserAffinity.*|.*Handler$|.*Provider$)'
+                'Client Registration'='^(clientregistration|locationservices|ccmmessaging|ccmexec)'
+                'Inventory'='^(ccmmessaging|inventoryagent|mtrmgr|swmtrreportgen|virtualapp|mtr.*|filesystemfile)'
+                'Policy'='^(ccmmessaging|policyagent_.*|policyevaluator_.*)'
+                'Software Updates'='^(ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|update.*|wuahandler|xmlstore|scanagent)'
+                'Software Distribution'='^(datatransferservice|execmgr.*|contenttransfermanager|locationservices|contentaccess|filebits)'
+                'Desired Configuration Management'='Desired Configuration Management" value="^(ci.*|dcm.*)'
+                'Operating System Deployment'='^(ts.*)'
             }
-            'Input' {
-                if ($PSBoundParameters.ContainsKey('Path') -and $PSBoundParameters.ContainsKey('Input')) { # quick validation for log group and path
-                    Write-Error "Path and Input cannot be used together."
-                    return
-                }             
+            Write-Verbose "$CurrentFunction LogGroupHashTableREGEX = $LogGroupHashTable"
+        }
+        if ($Credential) {
+            if ($ENV:COMPUTERNAME -eq $ComputerName) {
+                Write-Error "-Credential cannot be used on localhost"
+                return
             }
-        } 
-        Write-Verbose "Begin block end"
+            if ($PSBoundParameters.ContainsKey('Credential') -and $PSBoundParameters.ContainsKey('PSSession')) { # quick validation for log group and path
+                Write-Error "Credential and PSSession cannot be used together."
+                return
+            }
+        }
+        if ($Input) {
+            $LogContent = $InputObject
+        }
+        Write-Verbose "$CurrentFunction Begin block end"
     }
     PROCESS {
-        Write-Verbose "Process block begin"
-        Write-Verbose "Current Param set: $($PSCmdlet.ParameterSetName)"
+        Write-Verbose "$CurrentFunction Process block begin"
+        Write-Verbose "$CurrentFunction Current Param set: $($PSCmdlet.ParameterSetName)"
         # call out to open-ccmsession to get connection point
         $CCMSession = $null
         try {
@@ -372,7 +367,7 @@ Function Get-CCMLog {
                 }
             }
             'Input' {
-                $LogContent = $InputObject
+                #$LogContent = $InputObject
             }
         }
 
@@ -384,7 +379,7 @@ Function Get-CCMLog {
         if ($ClientRegexMatches.Count -gt 0) { # cient regex
             $ClientRegexMatches | ForEach-Object {
                 $DateTime = "$($_.Groups[6].Value) $($_.Groups[4].Value)"
-                Write-Verbose "$DateTime"
+                Write-Verbose "$CurrentFunction $DateTime"
                 $DateTime = [datetime]::ParseExact($DateTime, 'MM-dd-yyyy HH:mm:ss.fff', $null)
                 $Message = $_.Groups[1].Value
                 $Message = $Message -replace '\r?\n', ' '
@@ -427,7 +422,7 @@ Function Get-CCMLog {
                 $Thread = $_.Groups[10].Value
                 $File = $null
                 # best effort on Severity
-                Write-Verbose "WARNING: No REGEX matches on TYPE, giving best effort"
+                Write-Verbose "$CurrentFunction WARNING: No REGEX matches on TYPE, giving best effort"
                 $Message | ForEach-Object {
                     if ($_ -match $ErrorFilter) {
                         $Type = 'Error'
@@ -457,7 +452,7 @@ Function Get-CCMLog {
                 }
             }
         } else { # best effor on log
-            Write-Verbose "WARNING: No REGEX matches on server and client, giving best effort"
+            Write-Verbose "$CurrentFunction WARNING: No REGEX matches on server and client, giving best effort"
             $DateTime = $null
             $Component = $null
             $Thread = $null
@@ -491,7 +486,7 @@ Function Get-CCMLog {
                 }
             }
         }  
-        Write-Verbose "Process Block End"
+        Write-Verbose "$CurrentFunction Process Block End"
     }
 }
  
@@ -632,9 +627,9 @@ Function Invoke-CCMClientAction {
             if ($Credential) {
                 $Action | ForEach-Object {
                     try {
-                        Write-Verbose "COMPUTER: $Computer TRIGGER: $($TriggerHashTable.$_)"
+                        Write-Verbose "$CurrentFunction COMPUTER: $Computer TRIGGER: $($TriggerHashTable.$_)"
                         $Return = Invoke-WmiMethod -ComputerName "$Computer" -Credential $Credential -Namespace root\ccm -Class SMS_Client -Name TriggerSchedule -ArgumentList $TriggerHashTable.$_ -ErrorAction Stop
-                        Write-Verbose "WMI RETURNED COMPUTERNAME $($Return.PSComputerName)"
+                        Write-Verbose "$CurrentFunction WMI RETURNED COMPUTERNAME $($Return.PSComputerName)"
                         $OutputObject = New-Object -TypeName psobject -Property @{
                             'ComputerName'=$Return.PSComputerName
                             'Action'=$_
@@ -650,9 +645,9 @@ Function Invoke-CCMClientAction {
             } else {
                 $Action | ForEach-Object {
                     try {
-                         Write-Verbose "COMPUTER: $Computer TRIGGER: $TriggerHashTable.$_"
+                         Write-Verbose "$CurrentFunction COMPUTER: $Computer TRIGGER: $TriggerHashTable.$_"
                         $Return = Invoke-WmiMethod -ComputerName $Computer -Namespace root\ccm -Class SMS_Client -Name TriggerSchedule -ArgumentList $TriggerHashTable.$_ -ErrorAction Stop
-                        Write-Verbose "WMI RETURNED COMPUTERNAME $($Return.PSComputerName)"
+                        Write-Verbose "$CurrentFunction WMI RETURNED COMPUTERNAME $($Return.PSComputerName)"
                         $OutputObject = New-Object -TypeName psobject -Property @{
                             'ComputerName'=$Return.PSComputerName
                             'Action'=$_
