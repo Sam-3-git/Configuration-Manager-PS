@@ -40,6 +40,7 @@ Function Open-CCMSession {
         [ValidateNotNull()]
         [System.Management.Automation.Credential()]$Credential # () allows username only to be passed
     )
+    $CurrentFunction = (Get-PSCallStack)[0].Command
     Write-Verbose "Current Param set: $($PSCmdlet.ParameterSetName)"
     switch ($PSCmdlet.ParameterSetName) {
         'Session' { # just pass back if for some reason a pssession is passed
@@ -222,7 +223,8 @@ Function Get-CCMLog {
     )
 
     BEGIN {
-        Write-Verbose "Begin block begin"
+        $CurrentFunction = (Get-PSCallStack)[0].Command
+        Write-Verbose "$CurrentFunction Begin block begin"
          <################
         # Client Pattern #
         ##################
@@ -281,6 +283,7 @@ Function Get-CCMLog {
                 # Log Groups #
                 #############>
                 $CCMClientLogPath = "$ENV:SYSTEMROOT\CCM\Logs\"
+                Write-Verbose "Setting CCMCLientLogPath to $CCMClientLogPath"
                 $LogGroupHashTable = @{
                     'Application Management'='^(app.*|ci.*|contentaccess|contenttransfermanager|datatransferservice|dcm.*|execmgr.*|UserAffinity.*|.*Handler$|.*Provider$)'
                     'Client Registration'='^(clientregistration|locationservices|ccmmessaging|ccmexec)'
@@ -291,6 +294,7 @@ Function Get-CCMLog {
                     'Desired Configuration Management'='Desired Configuration Management" value="^(ci.*|dcm.*)'
                     'Operating System Deployment'='^(ts.*)'
                 }
+                Write-Verbose "LogGroupHashTableREGEX = $LogGroupHashTable"
             }
             'Credential' {
                 if ($ENV:COMPUTERNAME -eq $ComputerName) {
@@ -354,9 +358,13 @@ Function Get-CCMLog {
                             Get-Content -Path $ContentPath
                         }
                     } else {
+                        Write-Verbose $CCMClientLogPath
                         $CCMClientLogs = Get-ChildItem -Path $CCMClientLogPath | Select-Object -ExpandProperty Name
+                        Write-Verbose $CCMClientLogs
                         $CCMCLientLogMatches = $CCMClientLogs -match $LogGroupHashTable.$LogGroup
+                        Write-Verbose $CCMCLientLogMatches
                         $ContentPath = $CCMCLientLogMatches | ForEach-Object {"$CCMClientLogpath$_"}
+                        Write-Verbose $ContentPath
                         Get-Content -Path $ContentPath
                     }
                 } catch {
@@ -561,6 +569,7 @@ Function Invoke-CCMClientAction {
     )
    
     BEGIN {
+        $CurrentFunction = (Get-PSCallStack)[0].Command
         # Trigger Calls
         $TriggerHashTable = @{
         'Hardware Inventory'='{00000000-0000-0000-0000-000000000001}'
@@ -706,6 +715,7 @@ Function Show-CCMUpdates {
         [ValidateNotNull()]
         [System.Management.Automation.Credential()]$Credential
     )
+    $CurrentFunction = (Get-PSCallStack)[0].Command
     Foreach ($Computer in $ComputerName){
         if ($Credential) {
             try {
