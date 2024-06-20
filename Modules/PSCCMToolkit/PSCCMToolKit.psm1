@@ -306,8 +306,7 @@ Function Get-CCMLog {
                 if ($PSBoundParameters.ContainsKey('Path') -and $PSBoundParameters.ContainsKey('Input')) { # quick validation for log group and path
                     Write-Error "Path and Input cannot be used together."
                     return
-                }
-                $LogContent = $InputObject              
+                }             
             }
         } 
         Write-Verbose "Begin block end"
@@ -363,6 +362,9 @@ Function Get-CCMLog {
                 } catch {
                     $PSItem
                 }
+            }
+            'Input' {
+                $LogContent = $InputObject
             }
         }
 
