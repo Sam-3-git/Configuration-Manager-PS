@@ -356,22 +356,23 @@ Function Get-CCMLog {
                         $CCMClientLogs = Get-ChildItem -Path $CCMClientLogPath | Select-Object -ExpandProperty Name
                         $CCMCLientLogMatches = $CCMClientLogs -match $LogGroupHashTable.$LogGroup
                         $ContentPath = $CCMCLientLogMatches | ForEach-Object {"$CCMClientLogpath$_"}
-                        Get-Content -Path $ContentPath
+                        $LogContent = Get-Content -Path $ContentPath
                     }
                 } catch {
                     $PSItem
                 }
             }
             'Input' {
-                #$LogContent = $InputObject
+                $LogContent = $InputObject
             }
         }
 
         # Client Regex Checks
         $ClientRegexMatches = [regex]::Matches($LogContent, $ClientPattern)
+        Write-Verbose "$CurrentFunction ClientRegexCount = $($ClientRegexMatches.Count)"
         # Server Regex Checks
         $ServerRegexMatches = [regex]::Matches($LogContent, $ServerPattern)
-
+        Write-Verbose "$CurrentFunction ServerRegexCount = $($ServerRegexMatches.Count)"
         if ($ClientRegexMatches.Count -gt 0) { # cient regex
             $ClientRegexMatches | ForEach-Object {
                 $DateTime = "$($_.Groups[6].Value) $($_.Groups[4].Value)"
