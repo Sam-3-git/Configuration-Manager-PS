@@ -390,7 +390,7 @@ Function Get-CCMLog {
                 }
             }
         } elseif ($ServerRegexMatches.Count -gt 0) { # server regex
-            $ServerRegexMatches.Count -gt 0 {
+            $ServerRegexMatches | ForEach-Object {
                 $DateTime = $_.Groups[5].Value
                 $DateTime = [datetime]::ParseExact($DateTime, 'MM-dd-yyyy HH:mm:ss.fff', $null)
                 $Message = $_.Groups[1].Value
