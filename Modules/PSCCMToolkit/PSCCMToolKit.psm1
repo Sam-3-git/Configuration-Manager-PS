@@ -9,18 +9,19 @@ Function Open-CCMSession {
         NoCredential will do the same as Credential, just without -Credential passed. Session occurs when an existing connection is passed to the function.
         The output object will contain the necessary information for connections.
 
-        .PARAMETER SessionType
-        Parameter to decide on the attempted session type. PSSession is default.
+        .PARAMETER ComputerName
+        Specifies a computer name. Only One computer name at a time can be passed. Type the NetBIOS name, the IP address, or the fully qualified domain name of the computer.
 
-        .PARAMETER CimSession
-        Cimsession allows a [Microsoft.Management.Infrastructure.CimSession] to be passed to the function to create a connection object. CimSession cannot be passed with CimSession
+        .PARAMETER Credential 
+        Specifies a user account or System.Management.Automation.Credential object that has permission to perform this action.
 
         .PARAMETER PSSession 
-        PSSession allows a [System.Management.Automation.Runspaces.PSSession] to be passed to the function to create a connection object. PSSession cannot be passed with CimSession.
+        PSSession allows a System.Management.Automation.Runspaces.PSSession object to be passed to the function to create a connection object.
         
         .INPUTS
         System.String
         System.Management.Automation.Runspaces.PSSession
+        System.Management.Automation.Credential
 
         .OUTPUTS
         System.Management.Automation.Runspaces.PSSession
@@ -119,6 +120,9 @@ Function Get-CCMLog {
         .PARAMETER Path
         Path to Target Configuration Manager Logs. More than one log path can be passed at a time.
  
+        .PARAMETER LogGroup
+        Get all client logs that are associated with a predefined log grouping.
+
         .PARAMETER Filter
         Filters based on the type of message in the log; "Success","Info","Warning","Error".
         
@@ -131,15 +135,18 @@ Function Get-CCMLog {
 
         .PARAMETER InputObject
         Accepts strings to then process through REGEX and format in the desired output.
+
+        .PARAMETER PSSession
+        Accepts System.Management.Automation.Runspaces.PSSession objects if a preffred pssession is wanted for connection. If not defined, best efforts will be given on opening a new session.
  
         .EXAMPLE
-        Get-CCMLog -LogPath "C:\Windows\CCM\Logs\PolicyAgent.log"
+        Get-CCMLog -Path "C:\Windows\CCM\Logs\PolicyAgent.log"
  
         .EXAMPLE
-        Get-CCMLog -LogPath "C:\Windows\CCM\Logs\PolicyAgent.log","C:\Windows\CCM\Logs\ClientIDManagerStartup.log"
+        Get-CCMLog -Path "C:\Windows\CCM\Logs\PolicyAgent.log","C:\Windows\CCM\Logs\ClientIDManagerStartup.log"
  
         .EXAMPLE
-        Get-CCMLog -LogPath "C:\Windows\CCM\Logs\AppEnforce.log" -Filter Error
+        Get-CCMLog -Path "C:\Windows\CCM\Logs\AppEnforce.log" -Filter Error
  
         .EXAMPLE
         Get-CCMLog -Path "C:\Windows\CCM\Logs\PolicyAgent.log" -ComputerName host.domain -Credential domain\admin01
@@ -167,36 +174,51 @@ Function Get-CCMLog {
         All non matches are determinied to be severity INFO.
         Log groups use alternitive regex look ups on client side logs.
     #>
-    [CmdletBinding(DefaultParameterSetName='Path')]
+    [CmdletBinding(DefaultParameterSetName='NoCredential')]
     PARAM(
+        [Parameter(Mandatory=$false, ParameterSetName='NoCredential')]
+        [Parameter(Mandatory=$false, ParameterSetName='Credential')]
         [Parameter(Mandatory=$false,ParameterSetName='Path')]
         [ValidateNotNullOrEmpty()]
         [string[]]$Path,
 
+        [Parameter(Mandatory=$false, ParameterSetName='NoCredential')]
+        [Parameter(Mandatory=$false, ParameterSetName='Credential')]
         [Parameter(Mandatory=$false,ParameterSetName='LogGroup')]
         [ValidateNotNullOrEmpty()]
         [ValidateSet("Application Management","Client Registration","Inventory","Policy","Software Updates","Software Distribution","Desired Configuration Management","Operating System Deployment")]
         [string]$LogGroup,
 
+        [Parameter(Mandatory=$false, ParameterSetName='NoCredential')]
+        [Parameter(Mandatory=$false, ParameterSetName='Credential')]
         [Parameter(Mandatory=$false,ParameterSetName='Input')]
         [Parameter(Mandatory=$false, ParameterSetName='Path')]
         [Parameter(Mandatory=$false,ParameterSetName='LogGroup')]
         [ValidateSet("Success","Info","Warning","Error")]
         [string]$Filter,
- 
+
+        [Parameter(Mandatory=$false, ParameterSetName='NoCredential')]
+        [Parameter(Mandatory=$false, ParameterSetName='Credential')]
         [Parameter(Mandatory=$false, ParameterSetName='Path')]
         [Parameter(Mandatory=$false,ParameterSetName='LogGroup')]
         [ValidateNotNullOrEmpty()]
         [Alias('hostname','PSComputerName')]
         [string]$ComputerName="$ENV:COMPUTERNAME",
- 
+
+        [Parameter(Mandatory=$false, ParameterSetName='Credential')]
         [Parameter(Mandatory=$false, ParameterSetName='Path')]
         [Parameter(Mandatory=$false,ParameterSetName='LogGroup')]
         [ValidateNotNull()]
         [System.Management.Automation.Credential()]$Credential,
 
         [Parameter(Mandatory=$false,ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true,ParameterSetName='Input')]
-        [string[]]$InputObject
+        [string[]]$InputObject,
+
+        [Parameter(Mandatory=$false, ParameterSetName='NoCredential')]
+        [Parameter(Mandatory=$false, ParameterSetName='Credential')]
+        [Parameter(Mandatory=$false, ParameterSetName='Path')]
+        [Parameter(Mandatory=$false,ParameterSetName='LogGroup')]
+        [System.Management.Automation.Runspaces.PSSession[]]$PSSession
     )
 
     BEGIN {
@@ -228,6 +250,10 @@ Function Get-CCMLog {
         #>################
         $ServerPattern = '(.*?)(\$\$<.*?)(.*?)(><)(.*?)(\+)(.*?)(><)(thread=)(.*?)>'
         Write-Verbose "Client pattern = $ServerPattern"
+        # Best effort Patterns
+        $SuccessFilter = '\b(Success | SUCCESS)\b'
+        $WarningFilter = '\b(Warning | Caution | WARNING | CAUTION)\b'
+        $ErrorFilter = '\b(Error | Failed | ERROR | FAILED)\b'
         # Do some validation for needful checks and warnings
         Write-Verbose "Current Param set: $($PSCmdlet.ParameterSetName)"
         switch ($PSCmdlet.ParameterSetName) {
@@ -266,8 +292,22 @@ Function Get-CCMLog {
                     'Operating System Deployment'='^(ts.*)'
                 }
             }
+            'Credential' {
+                if ($ENV:COMPUTERNAME -eq $ComputerName) {
+                    Write-Error "-Credential cannot be used on localhost"
+                    return
+                }
+                if ($PSBoundParameters.ContainsKey('Credential') -and $PSBoundParameters.ContainsKey('PSSession')) { # quick validation for log group and path
+                    Write-Error "Credential and PSSession cannot be used together."
+                    return
+                }
+            }
             'Input' {
-                $LogContent = $InputObject           
+                if ($PSBoundParameters.ContainsKey('Path') -and $PSBoundParameters.ContainsKey('Input')) { # quick validation for log group and path
+                    Write-Error "Path and Input cannot be used together."
+                    return
+                }
+                $LogContent = $InputObject              
             }
         } 
         Write-Verbose "Begin block end"
@@ -275,31 +315,61 @@ Function Get-CCMLog {
     PROCESS {
         Write-Verbose "Process block begin"
         Write-Verbose "Current Param set: $($PSCmdlet.ParameterSetName)"
-        switch ($PSCmdlet.ParameterSetName) { # the goal in this section is to determine log content and pass it to regex
+        # call out to open-ccmsession to get connection point
+        $CCMSession = $null
+        try {
+            if ($Credential) {
+                $CCMSession = Open-CCMSession -ComputerName $ComputerName -Credential $Credential
+            } elseif ($PSSession) {
+                $CCMSession = Open-CCMSession -PSSession $PSSession
+            } else {
+                $CCMSession = Open-CCMSession -ComputerName $ComputerName
+            }
+        } catch {
+            Write-Error "Unable to make a connection point to $ComputerName"
+            $PSItem
+            return
+        }
+        # Establish LogContent
+        switch ($PSBoundParameters.Keys) {
             'Path' {
-                switch ($PSBoundParameters.Keys) {
-                    'ComputerName' {
-
+                try {
+                    if ($CCMSession) {
+                        $LogContent = Invoke-Command -Session $CCMSession -ScriptBlock {Get-Content -Path $Using:Path}
+                    } else {
+                        $LogContent = Get-Content -Path $Path   
                     }
+                } catch {
+                    $PSItem
                 }
             }
             'LogGroup' {
-                switch ($PSBoundParameters.Keys) {
-                    'ComputerName' {
-                        
+                try {
+                    if ($CCMSession) {
+                        $LogContent = Invoke-Command -Session $CCMSession -ScriptBlock {
+                            $CCMClientLogs = Get-ChildItem -Path $Using:CCMClientLogPath | Select-Object -ExpandProperty Name
+                            $CCMCLientLogMatches = $CCMClientLogs -match $Using:LogGroupHashTable.$Using:LogGroup
+                            $ContentPath = $CCMCLientLogMatches | ForEach-Object {"$Using:CCMClientLogpath$_"}
+                            Get-Content -Path $ContentPath
+                        }
+                    } else {
+                        $CCMClientLogs = Get-ChildItem -Path $CCMClientLogPath | Select-Object -ExpandProperty Name
+                        $CCMCLientLogMatches = $CCMClientLogs -match $LogGroupHashTable.$LogGroup
+                        $ContentPath = $CCMCLientLogMatches | ForEach-Object {"$CCMClientLogpath$_"}
+                        Get-Content -Path $ContentPath
                     }
+                } catch {
+                    $PSItem
                 }
             }
-            'Input' {
-                # Nothing to do here...            
-            }
         }
+
         # Client Regex Checks
         $ClientRegexMatches = [regex]::Matches($LogContent, $ClientPattern)
         # Server Regex Checks
         $ServerRegexMatches = [regex]::Matches($LogContent, $ServerPattern)
 
-        if ($ClientRegexMatches.Count -gt 0) {
+        if ($ClientRegexMatches.Count -gt 0) { # cient regex
             $ClientRegexMatches | ForEach-Object {
                 $DateTime = "$($_.Groups[6].Value) $($_.Groups[4].Value)"
                 Write-Verbose "$DateTime"
@@ -318,172 +388,66 @@ Function Get-CCMLog {
                     '3' {$Type = 'Error'}
                     default {$Type = 'Unknown'}
                 }
-                # Create output object for match item
-                $OutputObject = New-Object -TypeName psobject -Property @{
-                    'Date\Time' = $DateTime
-                    'Message' = $Message
-                    'Severity' = $Type
-                    'Component' = $Component
-                    'Thread' = $Thread
-                    'File' = $File
-                }
-                switch ($Filter) {
-                    'Info' {if ($Type -eq 'Info') {Write-Output $OutputObject}}
-                    'Success' {if ($Type -eq 'Success') {Write-Output $OutputObject}}
-                    'Warning' {if ($Type -eq 'Warning') {Write-Output $OutputObject}}
-                    'Error' {if ($Type -eq 'Error') {Write-Output $OutputObject}}
-                    default {Write-Output $OutputObject}
+            }
+        } elseif ($ServerRegexMatches.Count -gt 0) { # server regex
+            $ServerRegexMatches.Count -gt 0 {
+                $DateTime = $_.Groups[5].Value
+                $DateTime = [datetime]::ParseExact($DateTime, 'MM-dd-yyyy HH:mm:ss.fff', $null)
+                $Message = $_.Groups[1].Value
+                $Message = $Message -replace '\r?\n', ' '
+                $Component = $_.Groups[3].Value
+                $Thread = $_.Groups[10].Value
+                $File = $null
+                # best effort on Severity
+                Write-Verbose "WARNING: No REGEX matches on TYPE, giving best effort"
+                $Message | ForEach-Object {
+                    if ($_ -match $ErrorFilter) {
+                        $Type = 'Error'
+                    } elseif ($_ -match $WarningFilter) {
+                        $Type = 'Warning'
+                    } elseif ($_ -match $SuccessFilter) {
+                        $Type = 'Success'
+                    } else {
+                        $Type = 'Info'
+                    }
                 }
             }
-        } elseif ($ServerRegexMatches.Count -gt 0) {
-
-        } else {
-
+        } else { # best effor on log
+            Write-Verbose "WARNING: No REGEX matches on server and client, giving best effort"
+            $DateTime = $null
+            $Component = $null
+            $Thread = $null
+            $File = $null
+            $LogContent | ForEach-Object {
+                $Message = $_
+                if ($_ -match $ErrorFilter) {
+                    $Type = 'Error'
+                } elseif ($_ -match $WarningFilter) {
+                    $Type = 'Warning'
+                } elseif ($_ -match $SuccessFilter) {
+                    $Type = 'Success'
+                } else {
+                    $Type = 'Info'
+                }
+            }
+        }
+        # Create output object
+        $OutputObject = New-Object -TypeName psobject -Property @{
+            'Date\Time' = $DateTime
+            'Message' = $Message
+            'Severity' = $Type
+            'Component' = $Component
+            'Thread' = $Thread
+            'File' = $File
+        }
+        switch ($Filter) {
+            'Info' {if ($Type -eq 'Info') {Write-Output $OutputObject}}
+            'Success' {if ($Type -eq 'Success') {Write-Output $OutputObject}}
+            'Warning' {if ($Type -eq 'Warning') {Write-Output $OutputObject}}
+            'Error' {if ($Type -eq 'Error') {Write-Output $OutputObject}}
+            default {Write-Output $OutputObject}
         }
         Write-Verbose "Process Block End"
-    }
-}
-
-Function Get-CCMLogOLD {
-
-    [CmdletBinding()]
-    PARAM(
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [string[]]$Path,
- 
-        [Parameter()]
-        [ValidateSet("Success","Info","Warning","Error")]
-        [string]$Filter,
- 
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [Alias('hostname','PSComputerName')]
-        [string]$ComputerName="$ENV:COMPUTERNAME",
- 
-        [Parameter()]
-        [ValidateNotNull()]
-        [System.Management.Automation.Credential()]$Credential,
-
-        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
-        [string[]]$InputObject
-    )
-    BEGIN {
-        # want to check extension and ensure that .log is passed. may work on other files if emulating cmtrace logging. warn user.
-        $Path | ForEach-Object -Process {
-            $logext = [IO.Path]::GetExtension($Path)
-            if ($logext -eq ".log") {
- 
-            }
-            elseif ($InputObject) {
-                # Do nothing as an input object means we are accepting values from pipeline
-            }
-            else {
-                Write-Warning " $logext is not valid .log extension"
-            }
-        }
-        <################
-        # REGEX Pattern #
-        #################
-        Group 2 = Message
-        Group 5 = Time
-        Group 7 = Date
-        Group 9 = Component
-        Group 11 = Type
-        Group 13 = Thread
-        '(?s)<!(\[LOG\[.*?)(.*?)(\]LOG\])(.*?time=")(\d\d\D\d\d\D\d\d\D\d\d\d)(.*?date=")(\d\d\D\d\d\D\d\d\d\d)(".component=")(.*?)(\".context="".type=")(\d)(".thread=")(.*?)(")(.*?)[^!]>'
-        Groups       1        2     3         4                 5                  6              7                   8          9           10            11     12       13  14  15
-        #################>
-        $Pattern = '(?s)<!(\[LOG\[.*?)(.*?)(\]LOG\])(.*?time=")(\d\d\D\d\d\D\d\d\D\d\d\d)(.*?date=")(\d\d\D\d\d\D\d\d\d\d)(".component=")(.*?)(\".context="".type=")(\d)(".thread=")(.*?)(")(.*?)[^!]>'
-        Write-Verbose "Regex Message pattern = $Pattern"
-        }
-    PROCESS {
-        Write-Verbose "INFO: passed logs $Path"
-        if ($Credential) {
-            Write-Verbose "INFO: $ComputerName"
-            $LogContent = Invoke-Command -ComputerName "$ComputerName" -Credential $Credential -ScriptBlock {Get-Content -Path $Using:Path}
-        } 
-        # If there is an inputobject then we need the var logcontent to == inputobject
-        elseif ($InputObject) {
-            $LogContent = $InputObject
-        }
-        else {      
-            $LogContent = Get-Content -Path $Path
-        }
-        $RegexMatches = [regex]::Matches($LogContent, $Pattern)
-        Write-Verbose "REGEXMATCH COUNT = $($RegexMatches.Count)"
-        $RegexMatches | ForEach-Object {
-            $DateTime = "$($_.Groups[7].Value) $($_.Groups[5].Value)"
-            Write-Verbose "$DateTime"
-            $DateTime = [datetime]::ParseExact($DateTime, 'MM-dd-yyyy HH:mm:ss.fff', $null)
-            $Message = $_.Groups[2].Value
-            $Message = $Message -replace '\r?\n', ' '
-            $Type = $_.Groups[11].Value
-            $Component = $_.Groups[9].Value
-            $Thread = $_.Groups[13].Value
-            # translate type to error value
-            switch ($Type) {
-                '1' {$Type = 'Info'}
-                '0' {$Type = 'Success'}
-                '2' {$Type = 'Warning'}
-                '3' {$Type = 'Error'}
-                default {$Type = 'Unknown'}
-            }
-            # Create output object for match item
-            $OutputObject = New-Object -TypeName psobject -Property @{
-                'Date\Time' = $DateTime
-                'Message' = $Message
-                'Severity' = $Type
-                'Component' = $Component
-                'Thread' = $Thread
-            }
-            switch ($Filter) {
-                'Info' {if ($Type -eq 'Info') {Write-Output $OutputObject}}
-                'Success' {if ($Type -eq 'Success') {Write-Output $OutputObject}}
-                'Warning' {if ($Type -eq 'Warning') {Write-Output $OutputObject}}
-                'Error' {if ($Type -eq 'Error') {Write-Output $OutputObject}}
-                default {Write-Output $OutputObject}
-            }
-        }
-        if ($RegexMatches.Count -eq 0) { # best effort on still matching with filters for given input when not matching regex
-            Write-Verbose "WARNING: No REGEX matches, giving best effort"
-            $SuccessFilter = '\b(Success)\b'
-            $WarningFilter = '\b(Warning)\b'
-            $ErrorFilter = '\b(Error)\b'
-            Foreach ($line in $LogContent) {
-                # set type of log based on log matching regex on line
-                switch ($line) {
-                    'Success' {if ($line -match $SuccessFilter) {$Type = 0}}
-                    'Warning' {if ($line -match $WarningFilter) {$Type = 2}}
-                    'Error' {if ($line -match $ErrorFilter) {$Type = 3}}
-                    default {$Type = 1} # set default to 1 if no matches are found
-                }
-                 # set type for output object.
-                 switch ($Type) {
-                    '1' {$Type = 'Info'}
-                    '0' {$Type = 'Success'}
-                    '2' {$Type = 'Warning'}
-                    '3' {$Type = 'Error'}
-                    default {$Type = 'Unknown'}
-                }
-                # create output object with only line and type
-                $OutputObject = New-Object -TypeName psobject -Property @{
-                    'Date\Time' = $DateTime
-                    'Message' = $line
-                    'Severity' = $Type
-                    'Component' = $Component
-                    'Thread' = $Thread
-                }
-                # write output based on filter
-                switch ($Filter) {
-                    'Info' {if ($Type -eq 'Info') {Write-Output $OutputObject}}
-                    'Success' {if ($Type -eq 'Success') {Write-Output $OutputObject}}
-                    'Warning' {if ($Type -eq 'Warning') {Write-Output $OutputObject}}
-                    'Error' {if ($Type -eq 'Error') {Write-Output $OutputObject}}
-                    default {Write-Output $OutputObject}
-                }
-            }  
-        }          
     }
 }
  
