@@ -305,9 +305,6 @@ Function Get-CCMLog {
                 return
             }
         }
-        if ($Input) {
-            $LogContent = $InputObject
-        }
         Write-Verbose "$CurrentFunction Begin block end"
     }
     PROCESS {
@@ -362,7 +359,7 @@ Function Get-CCMLog {
                     $PSItem
                 }
             }
-            'Input' {
+            'InputObject' {
                 $LogContent = $InputObject
             }
         }
