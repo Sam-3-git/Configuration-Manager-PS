@@ -236,7 +236,7 @@ Function Get-CCMLog {
         '(?s)<!\[LOG\[(.*?)(\]LOG\])(.*?time=")(\d\d\D\d\d\D\d\d\D\d\d\d)(.*?date=")(\d\d\D\d\d\D\d\d\d\d)(".component=")(.*?)(\".context="".type=")(\d)(".thread=")(.*?)(".file=")(.*?)[^!]>'
         Groups           1      2      3                   4                 5                  6              7           8          9               10       11     12       13   14  
         #################>
-        $ClientPattern = '(?s)<!(\[LOG\[.*?)(.*?)(\]LOG\])(.*?time=")(\d\d\D\d\d\D\d\d\D\d\d\d)(.*?date=")(\d\d\D\d\d\D\d\d\d\d)(".component=")(.*?)(\".context="".type=")(\d)(".thread=")(.*?)(")(.*?)[^!]>'
+        $ClientPattern = '(?s)<!\[LOG\[(.*?)(\]LOG\])(.*?time=")(\d\d\D\d\d\D\d\d\D\d\d\d)(.*?date=")(\d\d\D\d\d\D\d\d\d\d)(".component=")(.*?)(\".context="".type=")(\d)(".thread=")(.*?)(".file=")(.*?)[^!]>'
         Write-Verbose "Client pattern = $ClientPattern"
         <#################
         # Server Pattern # may need to add (?s) if new lines become an issue...
@@ -388,6 +388,22 @@ Function Get-CCMLog {
                     '3' {$Type = 'Error'}
                     default {$Type = 'Unknown'}
                 }
+                # Create output object
+                $OutputObject = New-Object -TypeName psobject -Property @{
+                    'Date\Time' = $DateTime
+                    'Message' = $Message
+                    'Severity' = $Type
+                    'Component' = $Component
+                    'Thread' = $Thread
+                    'File' = $File
+                }
+                switch ($Filter) {
+                    'Info' {if ($Type -eq 'Info') {Write-Output $OutputObject}}
+                    'Success' {if ($Type -eq 'Success') {Write-Output $OutputObject}}
+                    'Warning' {if ($Type -eq 'Warning') {Write-Output $OutputObject}}
+                    'Error' {if ($Type -eq 'Error') {Write-Output $OutputObject}}
+                    default {Write-Output $OutputObject}
+                }
             }
         } elseif ($ServerRegexMatches.Count -gt 0) { # server regex
             $ServerRegexMatches | ForEach-Object {
@@ -411,6 +427,22 @@ Function Get-CCMLog {
                         $Type = 'Info'
                     }
                 }
+                # Create output object
+                $OutputObject = New-Object -TypeName psobject -Property @{
+                    'Date\Time' = $DateTime
+                    'Message' = $Message
+                    'Severity' = $Type
+                    'Component' = $Component
+                    'Thread' = $Thread
+                    'File' = $File
+                }
+                switch ($Filter) {
+                    'Info' {if ($Type -eq 'Info') {Write-Output $OutputObject}}
+                    'Success' {if ($Type -eq 'Success') {Write-Output $OutputObject}}
+                    'Warning' {if ($Type -eq 'Warning') {Write-Output $OutputObject}}
+                    'Error' {if ($Type -eq 'Error') {Write-Output $OutputObject}}
+                    default {Write-Output $OutputObject}
+                }
             }
         } else { # best effor on log
             Write-Verbose "WARNING: No REGEX matches on server and client, giving best effort"
@@ -429,24 +461,24 @@ Function Get-CCMLog {
                 } else {
                     $Type = 'Info'
                 }
+                # Create output object
+                $OutputObject = New-Object -TypeName psobject -Property @{
+                    'Date\Time' = $DateTime
+                    'Message' = $Message
+                    'Severity' = $Type
+                    'Component' = $Component
+                    'Thread' = $Thread
+                    'File' = $File
+                }
+                switch ($Filter) {
+                    'Info' {if ($Type -eq 'Info') {Write-Output $OutputObject}}
+                    'Success' {if ($Type -eq 'Success') {Write-Output $OutputObject}}
+                    'Warning' {if ($Type -eq 'Warning') {Write-Output $OutputObject}}
+                    'Error' {if ($Type -eq 'Error') {Write-Output $OutputObject}}
+                    default {Write-Output $OutputObject}
+                }
             }
-        }
-        # Create output object
-        $OutputObject = New-Object -TypeName psobject -Property @{
-            'Date\Time' = $DateTime
-            'Message' = $Message
-            'Severity' = $Type
-            'Component' = $Component
-            'Thread' = $Thread
-            'File' = $File
-        }
-        switch ($Filter) {
-            'Info' {if ($Type -eq 'Info') {Write-Output $OutputObject}}
-            'Success' {if ($Type -eq 'Success') {Write-Output $OutputObject}}
-            'Warning' {if ($Type -eq 'Warning') {Write-Output $OutputObject}}
-            'Error' {if ($Type -eq 'Error') {Write-Output $OutputObject}}
-            default {Write-Output $OutputObject}
-        }
+        }  
         Write-Verbose "Process Block End"
     }
 }
