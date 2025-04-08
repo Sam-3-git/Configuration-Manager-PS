@@ -1,0 +1,57 @@
+Function Invoke-MicrosoftStoreAPI {
+    <#
+    .DESCRIPTION
+    Function to Invoke the Microsoft Store API for downloading store only packages.  
+
+    .PARAMETER URI
+    URI for the target application. 
+
+    .PARAMETER Product
+    passed int to change line color when viewed within cmtrace.exe. 1=info or no color; 2=warning or yellow; 3=red or error
+
+    .PARAMETER Component
+    passed string to fill the Component column when viewed with cmtrace.exe
+
+    .EXAMPLE
+    Write-Log -Message "Info: This is the start of the log" -Severity 1 -Component "BEGIN"
+
+    .EXAMPLE
+    Write-Log -Message "Warning: This is a warning in the middle of the log" -Severity 2 -Component "PROCESS"
+
+    .EXAMPLE
+    Write-Log -Message "Error: This is a terminiating error for some process... $SomeProcessPassedExitCode" -Severity 3 -Component "END"
+    #>
+ 
+    [CmdletBinding()]
+    PARAM(
+        
+        [Parameter(Mandatory = $True)]
+        [System.Uri]$URI,
+
+        [Parameter(Mandatory = $True)]
+        [ValidateNotNullOrEmpty()]
+        [string]$SortBy
+
+    )
+
+    BEGIN {
+        $CurrentFunction = (Get-PSCallStack)[0].Command
+        $productId = $StoreUri.Segments[2].TrimEnd('/') ## need to fix but this is the idea
+        [System.Uri]$API = "https://storeedgefd.dsx.mp.microsoft.com/v9.0/packageManifests/$productId?languages=en-us&market=US"
+        $Headers = @{
+        "User-Agent" = "WindowsAppsClient"
+        "Accept"     = "application/json"
+        }
+        Write-Verbose "$CurrentFunction API: $($API.AbsoluteUri)"
+        Write-Verbose "$CurrentFunction Headers:"
+        Write-Verbose $Headers
+    }
+
+    PROCESS {
+
+    }
+
+    END {
+
+    }
+}
